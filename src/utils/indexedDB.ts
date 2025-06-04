@@ -1,4 +1,3 @@
-
 // IndexedDB utilities for offline storage
 
 const DB_NAME = 'MiaFormsDB';
@@ -34,7 +33,7 @@ export const initDB = (): Promise<IDBDatabase> => {
   });
 };
 
-// Save form data to IndexedDB
+// Save form data to IndexedDB with region information
 export const saveFormData = async (formData: any): Promise<void> => {
   const db = await initDB();
   const transaction = db.transaction([FORMS_STORE], 'readwrite');
@@ -45,11 +44,13 @@ export const saveFormData = async (formData: any): Promise<void> => {
       ...formData,
       id: Date.now(), // Simple ID generation
       timestamp: new Date().toISOString(),
-      synced: false
+      synced: false,
+      regionLabel: `${formData.regionCode || 'PTA'}-${formData.regionCode || 'PTA'}`, // Regional labeling
+      submissionRegion: formData.regionCode || 'PTA'
     });
 
     request.onsuccess = () => {
-      console.log('Form data saved to IndexedDB');
+      console.log(`Form data saved to IndexedDB for region: ${formData.regionCode || 'PTA'}`);
       resolve();
     };
 
@@ -113,30 +114,37 @@ export const markFormAsSynced = async (id: number): Promise<void> => {
   });
 };
 
-// Sync pending forms to server
+// Sync pending forms to server with region-specific endpoints
 export const syncPendingForms = async (): Promise<void> => {
   try {
     const unsyncedForms = await getUnsyncedForms();
     
     for (const form of unsyncedForms) {
       try {
-        // Send form to server
-        const response = await fetch('/api/submit-consent-form', {
+        // Determine endpoint based on region
+        const endpoint = getRegionEndpoint(form.regionCode || 'PTA');
+        
+        // Send form to appropriate regional server/endpoint
+        const response = await fetch(endpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(form),
+          body: JSON.stringify({
+            ...form,
+            regionLabel: `${form.regionCode || 'PTA'}-FORM-${form.id}`,
+            submissionRegion: form.regionCode || 'PTA'
+          }),
         });
 
         if (response.ok) {
           await markFormAsSynced(form.id);
-          console.log(`Form ${form.id} synced successfully`);
+          console.log(`Form ${form.id} synced successfully for region ${form.regionCode || 'PTA'}`);
         } else {
-          console.error(`Failed to sync form ${form.id}:`, response.statusText);
+          console.error(`Failed to sync form ${form.id} for region ${form.regionCode}:`, response.statusText);
         }
       } catch (error) {
-        console.error(`Error syncing form ${form.id}:`, error);
+        console.error(`Error syncing form ${form.id} for region ${form.regionCode}:`, error);
         // Continue with next form even if one fails
       }
     }
@@ -144,6 +152,41 @@ export const syncPendingForms = async (): Promise<void> => {
     console.error('Error during sync process:', error);
     throw error;
   }
+};
+
+// Get region-specific endpoint for form submission
+const getRegionEndpoint = (regionCode: string): string => {
+  const endpoints = {
+    'CPT': '/api/submit-consent-form-cpt',
+    'PTA': '/api/submit-consent-form-pta', 
+    'JHB': '/api/submit-consent-form-jhb'
+  };
+  
+  return endpoints[regionCode as keyof typeof endpoints] || endpoints.PTA;
+};
+
+// Get forms by region (for regional reporting)
+export const getFormsByRegion = async (regionCode: string): Promise<any[]> => {
+  const db = await initDB();
+  const transaction = db.transaction([FORMS_STORE], 'readonly');
+  const store = transaction.objectStore(FORMS_STORE);
+  
+  return new Promise((resolve, reject) => {
+    const request = store.getAll();
+
+    request.onsuccess = () => {
+      const allForms = request.result;
+      const regionForms = allForms.filter(form => 
+        form.regionCode === regionCode || 
+        (!form.regionCode && regionCode === 'PTA') // Default to PTA for legacy forms
+      );
+      resolve(regionForms);
+    };
+
+    request.onerror = () => {
+      reject(new Error(`Failed to get forms for region ${regionCode}`));
+    };
+  });
 };
 
 // Clear all synced forms (optional cleanup)

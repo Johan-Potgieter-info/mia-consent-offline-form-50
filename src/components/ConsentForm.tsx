@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { Save, Send } from 'lucide-react';
+import { Save, Send, MapPin } from 'lucide-react';
 import { saveFormData, syncPendingForms } from '../utils/indexedDB';
 import { useToast } from '@/hooks/use-toast';
+import { getRegionWithFallback, Region, REGIONS } from '../utils/regionDetection';
 import FormSection from './FormSection';
 import PatientDetailsSection from './PatientDetailsSection';
 import AccountHolderSection from './AccountHolderSection';
@@ -14,12 +15,18 @@ interface FormData {
   [key: string]: any;
   responsibleForPayment?: string;
   paymentPreference?: string;
+  region?: string;
+  regionCode?: string;
+  doctor?: string;
+  practiceNumber?: string;
 }
 
 const ConsentForm = () => {
   const [activeSection, setActiveSection] = useState('patientDetails');
   const [formData, setFormData] = useState<FormData>({});
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [currentRegion, setCurrentRegion] = useState<Region | null>(null);
+  const [regionDetected, setRegionDetected] = useState(false);
   const { toast } = useToast();
 
   const sections = [
@@ -40,11 +47,54 @@ const ConsentForm = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
+    // Detect region on component mount
+    detectAndSetRegion();
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  const detectAndSetRegion = async () => {
+    try {
+      const region = await getRegionWithFallback();
+      setCurrentRegion(region);
+      setRegionDetected(true);
+      
+      // Automatically update form data with region information
+      setFormData(prev => ({
+        ...prev,
+        region: region.name,
+        regionCode: region.code,
+        doctor: region.doctor,
+        practiceNumber: region.practiceNumber
+      }));
+
+      toast({
+        title: "Region Detected",
+        description: `Form will be submitted for ${region.name} (${region.code}) - ${region.doctor}`,
+      });
+    } catch (error) {
+      console.error('Region detection failed:', error);
+      toast({
+        title: "Region Detection Failed",
+        description: "Using default region (PTA)",
+        variant: "destructive",
+      });
+      
+      // Set default region
+      const defaultRegion = REGIONS.PTA;
+      setCurrentRegion(defaultRegion);
+      setFormData(prev => ({
+        ...prev,
+        region: defaultRegion.name,
+        regionCode: defaultRegion.code,
+        doctor: defaultRegion.doctor,
+        practiceNumber: defaultRegion.practiceNumber
+      }));
+    }
+  };
 
   const handleInputChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -79,7 +129,12 @@ const ConsentForm = () => {
 
   const submitForm = async () => {
     try {
-      const finalData = { ...formData, timestamp: new Date().toISOString(), synced: false };
+      const finalData = { 
+        ...formData, 
+        timestamp: new Date().toISOString(), 
+        synced: false,
+        submissionId: `${formData.regionCode}-${Date.now()}`
+      };
       await saveFormData(finalData);
       
       if (isOnline) {
@@ -88,7 +143,9 @@ const ConsentForm = () => {
       
       toast({
         title: "Form Submitted",
-        description: isOnline ? "Form submitted successfully!" : "Form saved and will sync when online.",
+        description: isOnline ? 
+          `Form submitted successfully for ${currentRegion?.name}!` : 
+          "Form saved and will sync when online.",
       });
     } catch (error) {
       toast({
@@ -156,6 +213,12 @@ const ConsentForm = () => {
             }`}>
               {isOnline ? 'Online' : 'Offline'}
             </span>
+            {currentRegion && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                <MapPin className="w-3 h-3 mr-1" />
+                {currentRegion.code} - {currentRegion.name}
+              </span>
+            )}
           </div>
           <div className="flex space-x-2">
             <button
@@ -188,9 +251,16 @@ const ConsentForm = () => {
           <div className="p-6">
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-[#ef4805] mb-2">
-                Mia Information and Consent Form PTA
+                Mia Information and Consent Form {currentRegion?.code || 'PTA'}
               </h1>
-              <p className="text-gray-600">Dr. Vorster Practice Number: 1227831</p>
+              <p className="text-gray-600">
+                {currentRegion?.doctor || 'Dr. Vorster'} Practice Number: {currentRegion?.practiceNumber || '1227831'}
+              </p>
+              {regionDetected && currentRegion && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Region: {currentRegion.name} ({currentRegion.code})
+                </p>
+              )}
             </div>
 
             {/* Navigation and Submit */}
