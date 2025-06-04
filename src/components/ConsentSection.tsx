@@ -4,6 +4,7 @@ import React from 'react';
 interface ConsentSectionProps {
   formData: any;
   onInputChange: (name: string, value: string) => void;
+  onCheckboxChange?: (name: string, value: string, checked: boolean) => void;
 }
 
 const ConsentSection = ({ formData, onInputChange }: ConsentSectionProps) => {

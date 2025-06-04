@@ -4,6 +4,7 @@ import React from 'react';
 interface PaymentEmergencySectionProps {
   formData: any;
   onInputChange: (name: string, value: string) => void;
+  onCheckboxChange?: (name: string, value: string, checked: boolean) => void;
 }
 
 const PaymentEmergencySection = ({ formData, onInputChange }: PaymentEmergencySectionProps) => {

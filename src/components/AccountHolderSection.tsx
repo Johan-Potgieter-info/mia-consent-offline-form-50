@@ -4,6 +4,7 @@ import React from 'react';
 interface AccountHolderSectionProps {
   formData: any;
   onInputChange: (name: string, value: string) => void;
+  onCheckboxChange?: (name: string, value: string, checked: boolean) => void;
 }
 
 const AccountHolderSection = ({ formData, onInputChange }: AccountHolderSectionProps) => {
