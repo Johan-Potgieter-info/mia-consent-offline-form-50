@@ -1,12 +1,17 @@
-
 import React, { useState, useEffect } from 'react';
 import { ArrowUp, ArrowDown, Save, Send } from 'lucide-react';
 import { saveFormData, syncPendingForms } from '../utils/indexedDB';
 import { useToast } from '@/hooks/use-toast';
 
+interface FormData {
+  [key: string]: any;
+  responsibleForPayment?: string;
+  paymentPreference?: string;
+}
+
 const ConsentForm = () => {
   const [activeSection, setActiveSection] = useState('patientDetails');
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState<FormData>({});
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const { toast } = useToast();
 
@@ -34,13 +39,13 @@ const ConsentForm = () => {
     };
   }, []);
 
-  const handleInputChange = (name, value) => {
+  const handleInputChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleCheckboxChange = (name, value, checked) => {
+  const handleCheckboxChange = (name: string, value: string, checked: boolean) => {
     setFormData(prev => {
-      const currentValues = prev[name] || [];
+      const currentValues = (prev[name] as string[]) || [];
       if (checked) {
         return { ...prev, [name]: [...currentValues, value] };
       } else {
@@ -401,6 +406,144 @@ const ConsentForm = () => {
                     {/* Additional account holder fields would go here */}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Payment and Emergency Contact Section */}
+            {activeSection === 'paymentEmergency' && (
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-[#ef4805] mb-4">Payment and Emergency Contact</h2>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    25. Payment Preference
+                  </label>
+                  <div className="space-y-2">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="paymentPreference"
+                        value="Card/EFT/Snapcan"
+                        className="mr-2"
+                        onChange={(e) => handleInputChange('paymentPreference', e.target.value)}
+                      />
+                      <span className="text-sm">Card/EFT/Snapcan</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="paymentPreference"
+                        value="Medical Aid"
+                        className="mr-2"
+                        onChange={(e) => handleInputChange('paymentPreference', e.target.value)}
+                      />
+                      <span className="text-sm">Medical Aid</span>
+                    </label>
+                  </div>
+                </div>
+
+                {formData.paymentPreference === 'Medical Aid' && (
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          26. Medical Aid Name *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+                          onChange={(e) => handleInputChange('medicalAidName', e.target.value)}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          27. Medical Aid No. *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+                          onChange={(e) => handleInputChange('medicalAidNo', e.target.value)}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          28. Plan *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+                          onChange={(e) => handleInputChange('medicalAidPlan', e.target.value)}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          29. Main Member *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+                          onChange={(e) => handleInputChange('mainMember', e.target.value)}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          30. Dependant Code (if applicable)
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+                          onChange={(e) => handleInputChange('dependantCode', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      31. Emergency Contact Name and Surname *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+                      onChange={(e) => handleInputChange('emergencyName', e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      32. Relationship *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+                      onChange={(e) => handleInputChange('emergencyRelationship', e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      33. Cell Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+                      onChange={(e) => handleInputChange('emergencyPhone', e.target.value)}
+                    />
+                  </div>
+                </div>
               </div>
             )}
 

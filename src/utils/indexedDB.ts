@@ -67,7 +67,7 @@ export const getUnsyncedForms = async (): Promise<any[]> => {
   const index = store.index('synced');
   
   return new Promise((resolve, reject) => {
-    const request = index.getAll(false);
+    const request = index.getAll(IDBKeyRange.only(false));
 
     request.onsuccess = () => {
       resolve(request.result);
@@ -154,7 +154,7 @@ export const clearSyncedForms = async (): Promise<void> => {
   const index = store.index('synced');
   
   return new Promise((resolve, reject) => {
-    const request = index.getAllKeys(true);
+    const request = index.getAllKeys(IDBKeyRange.only(true));
 
     request.onsuccess = () => {
       const keys = request.result;

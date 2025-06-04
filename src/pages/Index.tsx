@@ -1,21 +1,25 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { FileText, Wifi, WifiOff, Database } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { FileText, Database, Wifi, WifiOff } from "lucide-react";
+import { getAllForms, clearSyncedForms } from "@/utils/indexedDB";
 
 const Index = () => {
-  const [isOnline, setIsOnline] = React.useState(navigator.onLine);
-  const [pendingForms, setPendingForms] = React.useState(0);
+  const navigate = useNavigate();
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [savedForms, setSavedForms] = useState(0);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Check for pending forms in IndexedDB
-    checkPendingForms();
+    // Load saved forms count
+    loadFormsCount();
 
     return () => {
       window.removeEventListener('online', handleOnline);
@@ -23,112 +27,102 @@ const Index = () => {
     };
   }, []);
 
-  const checkPendingForms = async () => {
+  const loadFormsCount = async () => {
     try {
-      const request = indexedDB.open('MiaFormsDB', 1);
-      request.onsuccess = (event) => {
-        const db = event.target.result;
-        const transaction = db.transaction(['forms'], 'readonly');
-        const store = transaction.objectStore('forms');
-        const countRequest = store.count();
-        countRequest.onsuccess = () => {
-          setPendingForms(countRequest.result);
-        };
-      };
+      const forms = await getAllForms();
+      setSavedForms(forms.length);
     } catch (error) {
-      console.log('IndexedDB not available');
+      console.error('Error loading forms count:', error);
+    }
+  };
+
+  const clearForms = async () => {
+    try {
+      await clearSyncedForms();
+      await loadFormsCount();
+    } catch (error) {
+      console.error('Error clearing forms:', error);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header with Mia Branding */}
-      <div className="bg-[#ef4805] p-6">
+      {/* Header */}
+      <div className="bg-[#ef4805] p-4">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white p-4 inline-block rounded-lg">
+          <div className="bg-white p-3 inline-block rounded-lg">
             <img 
               src="https://emiyxuareujqneuyewzq.supabase.co/storage/v1/object/public/email-assets//logoWeb-ezgif.com-optiwebp.webp" 
               alt="Mia Gesondheidsorgdienste Logo"
-              className="h-12 w-auto"
+              className="h-10 w-auto"
             />
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-[#ef4805] mb-2">
-            Mia Information and Consent Form PTA
-          </h1>
-          <p className="text-gray-600">Dr. Vorster Practice Number: 1227831</p>
+      <div className="max-w-4xl mx-auto p-4">
+        {/* Status Bar */}
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6 flex justify-between items-center">
+          <div className="flex items-center space-x-4">
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+              isOnline ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`}>
+              {isOnline ? <Wifi className="w-4 h-4 mr-1" /> : <WifiOff className="w-4 h-4 mr-1" />}
+              {isOnline ? 'Online' : 'Offline'}
+            </span>
+            <span className="text-sm text-gray-600">
+              <Database className="w-4 h-4 inline mr-1" />
+              {savedForms} saved forms
+            </span>
+          </div>
+          {savedForms > 0 && (
+            <Button variant="outline" size="sm" onClick={clearForms}>
+              Clear Synced Forms
+            </Button>
+          )}
         </div>
 
-        {/* Status Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-[#ef4805]">
-            <div className="flex items-center">
-              {isOnline ? (
-                <Wifi className="h-8 w-8 text-green-500 mr-3" />
-              ) : (
-                <WifiOff className="h-8 w-8 text-red-500 mr-3" />
-              )}
-              <div>
-                <h3 className="font-semibold">Connection Status</h3>
-                <p className={`text-sm ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
-                  {isOnline ? 'Online' : 'Offline'}
-                </p>
-              </div>
-            </div>
+        {/* Main Content */}
+        <div className="space-y-6">
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-[#ef4805] mb-2">
+              Mia Healthcare Services
+            </h1>
+            <p className="text-gray-600 mb-8">
+              Complete your consent form online or offline. Your data is securely stored and synced when connected.
+            </p>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
-            <div className="flex items-center">
-              <Database className="h-8 w-8 text-blue-500 mr-3" />
-              <div>
-                <h3 className="font-semibold">Local Storage</h3>
-                <p className="text-sm text-gray-600">Forms saved locally</p>
-              </div>
-            </div>
+          <div className="grid md:grid-cols-1 max-w-md mx-auto">
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center text-[#ef4805]">
+                  <FileText className="w-5 h-5 mr-2" />
+                  Patient Consent Form
+                </CardTitle>
+                <CardDescription>
+                  Complete the Mia Information and Consent Form for dental treatment.
+                  Works offline and syncs when online.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  onClick={() => navigate('/consent-form')} 
+                  className="w-full bg-[#ef4805] hover:bg-[#f47d4a]"
+                >
+                  Start Form
+                </Button>
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
-            <div className="flex items-center">
-              <FileText className="h-8 w-8 text-orange-500 mr-3" />
-              <div>
-                <h3 className="font-semibold">Pending Sync</h3>
-                <p className="text-sm text-gray-600">{pendingForms} forms</p>
-              </div>
-            </div>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 className="font-semibold text-blue-800 mb-2">Offline Capability</h3>
+            <p className="text-sm text-blue-700">
+              This application works completely offline. Your form data is saved locally on your device 
+              and will automatically sync with our servers when you're back online.
+            </p>
           </div>
-        </div>
-
-        {/* Main Action */}
-        <div className="bg-white rounded-lg shadow-lg p-8 text-center">
-          <FileText className="h-16 w-16 text-[#ef4805] mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            Patient Consent Form
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Complete your dental consent form. Data is saved locally and synced when online.
-          </p>
-          
-          <Link 
-            to="/consent-form"
-            className="inline-block bg-[#ef4805] hover:bg-[#f47d4a] text-white font-semibold py-3 px-8 rounded-lg transition-colors"
-          >
-            Start New Form
-          </Link>
-        </div>
-
-        {/* Information */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="font-semibold text-blue-800 mb-2">How it works:</h3>
-          <ul className="text-blue-700 text-sm space-y-1">
-            <li>• Complete the form online or offline</li>
-            <li>• Data is automatically saved to your device</li>
-            <li>• Forms sync to our servers when internet is available</li>
-            <li>• Your progress is never lost</li>
-          </ul>
         </div>
       </div>
     </div>
