@@ -1,4 +1,3 @@
-
 // Region detection utility for automatic form labeling
 
 export interface Region {
@@ -12,8 +11,8 @@ export const REGIONS: Record<string, Region> = {
   CPT: {
     code: 'CPT',
     name: 'Cape Town',
-    doctor: 'Dr. Cape Town Practice',
-    practiceNumber: 'TBD'
+    doctor: 'Dr. Soni',
+    practiceNumber: '1030817'
   },
   PTA: {
     code: 'PTA',
@@ -24,8 +23,8 @@ export const REGIONS: Record<string, Region> = {
   JHB: {
     code: 'JHB',
     name: 'Johannesburg',
-    doctor: 'Dr. Johannesburg Practice',
-    practiceNumber: 'TBD'
+    doctor: 'Dr. Essop',
+    practiceNumber: '1182609'
   }
 };
 
