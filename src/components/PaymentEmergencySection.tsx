@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 
 interface PaymentEmergencySectionProps {
   formData: any;
@@ -16,28 +17,19 @@ const PaymentEmergencySection = ({ formData, onInputChange }: PaymentEmergencySe
         <label className="block text-sm font-medium text-gray-700 mb-2">
           25. Payment Preference
         </label>
-        <div className="space-y-2">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="paymentPreference"
-              value="Card/EFT/Snapcan"
-              className="mr-2"
-              onChange={(e) => onInputChange('paymentPreference', e.target.value)}
-            />
-            <span className="text-sm">Card/EFT/Snapcan</span>
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="paymentPreference"
-              value="Medical Aid"
-              className="mr-2"
-              onChange={(e) => onInputChange('paymentPreference', e.target.value)}
-            />
-            <span className="text-sm">Medical Aid</span>
-          </label>
-        </div>
+        <RadioGroup
+          value={formData.paymentPreference || ''}
+          onValueChange={(value) => onInputChange('paymentPreference', value)}
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="Card/EFT/Snapcan" id="cardEft" />
+            <label htmlFor="cardEft" className="text-sm">Card/EFT/Snapcan</label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="Medical Aid" id="medicalAid" />
+            <label htmlFor="medicalAid" className="text-sm">Medical Aid</label>
+          </div>
+        </RadioGroup>
       </div>
 
       {formData.paymentPreference === 'Medical Aid' && (
@@ -51,6 +43,7 @@ const PaymentEmergencySection = ({ formData, onInputChange }: PaymentEmergencySe
                 type="text"
                 required
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+                value={formData.medicalAidName || ''}
                 onChange={(e) => onInputChange('medicalAidName', e.target.value)}
               />
             </div>
@@ -63,6 +56,7 @@ const PaymentEmergencySection = ({ formData, onInputChange }: PaymentEmergencySe
                 type="text"
                 required
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+                value={formData.medicalAidNo || ''}
                 onChange={(e) => onInputChange('medicalAidNo', e.target.value)}
               />
             </div>
@@ -75,6 +69,7 @@ const PaymentEmergencySection = ({ formData, onInputChange }: PaymentEmergencySe
                 type="text"
                 required
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+                value={formData.medicalAidPlan || ''}
                 onChange={(e) => onInputChange('medicalAidPlan', e.target.value)}
               />
             </div>
@@ -87,6 +82,7 @@ const PaymentEmergencySection = ({ formData, onInputChange }: PaymentEmergencySe
                 type="text"
                 required
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+                value={formData.mainMember || ''}
                 onChange={(e) => onInputChange('mainMember', e.target.value)}
               />
             </div>
@@ -98,6 +94,7 @@ const PaymentEmergencySection = ({ formData, onInputChange }: PaymentEmergencySe
               <input
                 type="text"
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+                value={formData.dependantCode || ''}
                 onChange={(e) => onInputChange('dependantCode', e.target.value)}
               />
             </div>
@@ -114,6 +111,7 @@ const PaymentEmergencySection = ({ formData, onInputChange }: PaymentEmergencySe
             type="text"
             required
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+            value={formData.emergencyName || ''}
             onChange={(e) => onInputChange('emergencyName', e.target.value)}
           />
         </div>
@@ -126,6 +124,7 @@ const PaymentEmergencySection = ({ formData, onInputChange }: PaymentEmergencySe
             type="text"
             required
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+            value={formData.emergencyRelationship || ''}
             onChange={(e) => onInputChange('emergencyRelationship', e.target.value)}
           />
         </div>
@@ -138,6 +137,7 @@ const PaymentEmergencySection = ({ formData, onInputChange }: PaymentEmergencySe
             type="tel"
             required
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+            value={formData.emergencyPhone || ''}
             onChange={(e) => onInputChange('emergencyPhone', e.target.value)}
           />
         </div>

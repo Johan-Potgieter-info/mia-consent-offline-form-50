@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 
 interface AccountHolderSectionProps {
   formData: any;
@@ -16,29 +17,19 @@ const AccountHolderSection = ({ formData, onInputChange }: AccountHolderSectionP
         <label className="block text-sm font-medium text-gray-700 mb-2">
           13. Person Responsible for Account Payment *
         </label>
-        <div className="space-y-2">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="responsibleForPayment"
-              value="Parent/Main member/Someone else"
-              required
-              className="mr-2"
-              onChange={(e) => onInputChange('responsibleForPayment', e.target.value)}
-            />
-            <span className="text-sm">Parent/Main member/Someone else</span>
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="responsibleForPayment"
-              value="Myself"
-              className="mr-2"
-              onChange={(e) => onInputChange('responsibleForPayment', e.target.value)}
-            />
-            <span className="text-sm">Myself</span>
-          </label>
-        </div>
+        <RadioGroup
+          value={formData.responsibleForPayment || ''}
+          onValueChange={(value) => onInputChange('responsibleForPayment', value)}
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="Parent/Main member/Someone else" id="parentMember" />
+            <label htmlFor="parentMember" className="text-sm">Parent/Main member/Someone else</label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="Myself" id="myself" />
+            <label htmlFor="myself" className="text-sm">Myself</label>
+          </div>
+        </RadioGroup>
       </div>
 
       {formData.responsibleForPayment === 'Parent/Main member/Someone else' && (
@@ -51,6 +42,7 @@ const AccountHolderSection = ({ formData, onInputChange }: AccountHolderSectionP
               <input
                 type="text"
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+                value={formData.accountHolderName || ''}
                 onChange={(e) => onInputChange('accountHolderName', e.target.value)}
               />
             </div>
@@ -62,6 +54,7 @@ const AccountHolderSection = ({ formData, onInputChange }: AccountHolderSectionP
               <input
                 type="text"
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+                value={formData.accountHolderAge || ''}
                 onChange={(e) => onInputChange('accountHolderAge', e.target.value)}
               />
             </div>
