@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 
 interface ConsentSectionProps {
   formData: any;
@@ -34,28 +35,19 @@ const ConsentSection = ({ formData, onInputChange }: ConsentSectionProps) => {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             44. I have read and agree with terms and conditions provided in the document
           </label>
-          <div className="space-y-2">
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="terms"
-                value="Agree"
-                className="mr-2"
-                onChange={(e) => onInputChange('terms', e.target.value)}
-              />
-              <span className="text-sm">Agree</span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="terms"
-                value="Disagree"
-                className="mr-2"
-                onChange={(e) => onInputChange('terms', e.target.value)}
-              />
-              <span className="text-sm">Disagree</span>
-            </label>
-          </div>
+          <RadioGroup
+            value={formData.terms || ''}
+            onValueChange={(value) => onInputChange('terms', value)}
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Agree" id="agree" />
+              <label htmlFor="agree" className="text-sm">Agree</label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Disagree" id="disagree" />
+              <label htmlFor="disagree" className="text-sm">Disagree</label>
+            </div>
+          </RadioGroup>
         </div>
 
         <div>
@@ -65,6 +57,7 @@ const ConsentSection = ({ formData, onInputChange }: ConsentSectionProps) => {
           <input
             type="text"
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+            value={formData.signature || ''}
             onChange={(e) => onInputChange('signature', e.target.value)}
           />
         </div>
