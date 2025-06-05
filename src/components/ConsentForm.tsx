@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Save, Send, MapPin } from 'lucide-react';
-import { saveFormData, syncPendingForms } from '../utils/indexedDB';
+import { Save, Send, MapPin, AlertCircle } from 'lucide-react';
+import { saveFormData, syncPendingForms, deleteDraft } from '../utils/indexedDB';
 import { useToast } from '@/hooks/use-toast';
 import { getRegionWithFallback, Region, REGIONS } from '../utils/regionDetection';
+import { useLocation, useNavigate } from 'react-router-dom';
 import FormSection from './FormSection';
 import PatientDetailsSection from './PatientDetailsSection';
 import AccountHolderSection from './AccountHolderSection';
@@ -13,20 +14,28 @@ import ConsentSection from './ConsentSection';
 
 interface FormData {
   [key: string]: any;
+  id?: number;
   responsibleForPayment?: string;
   paymentPreference?: string;
   region?: string;
   regionCode?: string;
   doctor?: string;
   practiceNumber?: string;
+  patientName?: string;
 }
 
 const ConsentForm = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('patientDetails');
   const [formData, setFormData] = useState<FormData>({});
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [currentRegion, setCurrentRegion] = useState<Region | null>(null);
   const [regionDetected, setRegionDetected] = useState(false);
+  const [isResuming, setIsResuming] = useState(false);
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
   const { toast } = useToast();
 
   const sections = [
@@ -47,14 +56,56 @@ const ConsentForm = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Detect region on component mount
-    detectAndSetRegion();
+    // Initialize form
+    initializeForm();
+
+    // Set up auto-save interval
+    const autoSaveInterval = setInterval(() => {
+      if (autoSaveEnabled && isDirty && Object.keys(formData).length > 0) {
+        autoSave();
+      }
+    }, 30000); // Auto-save every 30 seconds
+
+    // Set up beforeunload handler
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      clearInterval(autoSaveInterval);
     };
-  }, []);
+  }, [autoSaveEnabled, isDirty, formData]);
+
+  const initializeForm = async () => {
+    // Check if resuming a draft
+    const resumeDraft = location.state?.resumeDraft;
+    if (resumeDraft) {
+      setIsResuming(true);
+      setFormData(resumeDraft);
+      
+      // Set region from draft
+      const region = REGIONS[resumeDraft.regionCode] || REGIONS.PTA;
+      setCurrentRegion(region);
+      setRegionDetected(true);
+      
+      toast({
+        title: "Draft Resumed",
+        description: `Continuing form for ${resumeDraft.patientName || 'patient'}`,
+      });
+      
+      setIsResuming(false);
+    } else {
+      // Detect region for new form
+      await detectAndSetRegion();
+    }
+  };
 
   const detectAndSetRegion = async () => {
     try {
@@ -98,6 +149,7 @@ const ConsentForm = () => {
 
   const handleInputChange = (name: string, value: string) => {
     setFormData(prev => ({ ...prev, [name]: value }));
+    setIsDirty(true);
   };
 
   const handleCheckboxChange = (name: string, value: string, checked: boolean) => {
@@ -109,11 +161,27 @@ const ConsentForm = () => {
         return { ...prev, [name]: currentValues.filter(v => v !== value) };
       }
     });
+    setIsDirty(true);
+  };
+
+  const autoSave = async () => {
+    try {
+      const savedId = await saveFormData({ ...formData, timestamp: new Date().toISOString() }, true);
+      setFormData(prev => ({ ...prev, id: savedId }));
+      setLastSaved(new Date());
+      setIsDirty(false);
+      console.log('Auto-saved draft');
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+    }
   };
 
   const saveForm = async () => {
     try {
-      await saveFormData({ ...formData, timestamp: new Date().toISOString(), synced: false });
+      const savedId = await saveFormData({ ...formData, timestamp: new Date().toISOString() }, true);
+      setFormData(prev => ({ ...prev, id: savedId }));
+      setLastSaved(new Date());
+      setIsDirty(false);
       toast({
         title: "Form Saved",
         description: "Your progress has been saved locally.",
@@ -129,13 +197,34 @@ const ConsentForm = () => {
 
   const submitForm = async () => {
     try {
+      // Validate required fields
+      if (!formData.patientName || !formData.idNumber) {
+        toast({
+          title: "Validation Error",
+          description: "Please fill in patient name and ID number before submitting.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const finalData = { 
         ...formData, 
         timestamp: new Date().toISOString(), 
         synced: false,
-        submissionId: `${formData.regionCode}-${Date.now()}`
+        submissionId: `${formData.regionCode}-${Date.now()}`,
+        status: 'completed'
       };
-      await saveFormData(finalData);
+      
+      await saveFormData(finalData, false);
+      
+      // Delete draft if resuming
+      if (formData.id && isResuming) {
+        try {
+          await deleteDraft(formData.id);
+        } catch (error) {
+          console.log('Draft deletion failed (may not exist):', error);
+        }
+      }
       
       if (isOnline) {
         await syncPendingForms();
@@ -147,6 +236,12 @@ const ConsentForm = () => {
           `Form submitted successfully for ${currentRegion?.name}!` : 
           "Form saved and will sync when online.",
       });
+
+      // Navigate back to home after successful submission
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+      
     } catch (error) {
       toast({
         title: "Submission Error",
@@ -173,6 +268,14 @@ const ConsentForm = () => {
         onCheckboxChange={handleCheckboxChange}
       />
     );
+  };
+
+  const formatLastSaved = () => {
+    if (!lastSaved) return '';
+    return lastSaved.toLocaleTimeString('en-ZA', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
   };
 
   return (
@@ -219,6 +322,17 @@ const ConsentForm = () => {
                 {currentRegion.code} - {currentRegion.name}
               </span>
             )}
+            {isDirty && (
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                <AlertCircle className="w-3 h-3 mr-1" />
+                Unsaved changes
+              </span>
+            )}
+            {lastSaved && (
+              <span className="text-xs text-gray-500">
+                Last saved: {formatLastSaved()}
+              </span>
+            )}
           </div>
           <div className="flex space-x-2">
             <button
@@ -252,6 +366,7 @@ const ConsentForm = () => {
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-[#ef4805] mb-2">
                 Mia Information and Consent Form {currentRegion?.code || 'PTA'}
+                {isResuming && <span className="text-lg text-gray-600 ml-2">(Resumed)</span>}
               </h1>
               <p className="text-gray-600">
                 {currentRegion?.doctor || 'Dr. Vorster'} Practice Number: {currentRegion?.practiceNumber || '1227831'}
@@ -261,6 +376,14 @@ const ConsentForm = () => {
                   Region: {currentRegion.name} ({currentRegion.code})
                 </p>
               )}
+            </div>
+
+            {/* Auto-save notification */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-6">
+              <p className="text-sm text-gray-600">
+                <AlertCircle className="w-4 h-4 inline mr-1" />
+                Your progress is automatically saved every 30 seconds. You can safely close and resume later.
+              </p>
             </div>
 
             {/* Navigation and Submit */}
