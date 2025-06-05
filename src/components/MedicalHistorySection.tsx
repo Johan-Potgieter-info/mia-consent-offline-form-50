@@ -106,7 +106,7 @@ const MedicalHistorySection = ({ formData, onInputChange, onCheckboxChange }: Me
           <Checkbox
             id="nilAllergies"
             checked={formData.allergies === 'Nil'}
-            onCheckedChange={(checked) => handleNilCheckbox('allergies', checked)}
+            onCheckedChange={(checked) => handleNilCheckbox('allergies', checked === true)}
           />
           <label htmlFor="nilAllergies" className="text-sm text-gray-600">
             No allergies (Nil)
@@ -130,7 +130,7 @@ const MedicalHistorySection = ({ formData, onInputChange, onCheckboxChange }: Me
           <Checkbox
             id="nilMedication"
             checked={formData.medication === 'Nil'}
-            onCheckedChange={(checked) => handleNilCheckbox('medication', checked)}
+            onCheckedChange={(checked) => handleNilCheckbox('medication', checked === true)}
           />
           <label htmlFor="nilMedication" className="text-sm text-gray-600">
             No medication (Nil)
