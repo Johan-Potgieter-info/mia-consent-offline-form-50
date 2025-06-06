@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FileText, Globe, Shield, Clock } from 'lucide-react';
+import ResumeDraftDialog from '../components/ResumeDraftDialog';
 
 console.log("Index component loaded");
 
@@ -40,13 +40,16 @@ const Index = () => {
             A secure, offline-capable digital consent form system designed for Mia Healthcare patients. 
             Complete your form online or offline with automatic synchronization.
           </p>
-          <Link
-            to="/consent-form"
-            className="inline-flex items-center px-8 py-4 bg-[#ef4805] text-white font-semibold rounded-lg hover:bg-[#d63d04] transition-colors shadow-lg text-lg"
-          >
-            <FileText className="w-6 h-6 mr-3" />
-            Start Consent Form
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              to="/consent-form"
+              className="inline-flex items-center px-8 py-4 bg-[#ef4805] text-white font-semibold rounded-lg hover:bg-[#d63d04] transition-colors shadow-lg text-lg"
+            >
+              <FileText className="w-6 h-6 mr-3" />
+              Start New Form
+            </Link>
+            <ResumeDraftDialog />
+          </div>
         </div>
 
         {/* Features */}

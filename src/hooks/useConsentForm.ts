@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { saveFormData, syncPendingForms, deleteDraft } from '../utils/indexedDB';
@@ -29,6 +28,7 @@ export const useConsentForm = () => {
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const [regionDetectionComplete, setRegionDetectionComplete] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -41,17 +41,25 @@ export const useConsentForm = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Initialize form
-    initializeForm();
+    // Initialize form only once
+    if (!regionDetectionComplete) {
+      initializeForm();
+    }
 
-    // Set up auto-save interval
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [regionDetectionComplete]);
+
+  // Separate effect for auto-save
+  useEffect(() => {
     const autoSaveInterval = setInterval(() => {
       if (autoSaveEnabled && isDirty && Object.keys(formData).length > 0) {
         autoSave();
       }
     }, 30000); // Auto-save every 30 seconds
 
-    // Set up beforeunload handler
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
         e.preventDefault();
@@ -61,14 +69,14 @@ export const useConsentForm = () => {
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
       window.removeEventListener('beforeunload', handleBeforeUnload);
       clearInterval(autoSaveInterval);
     };
   }, [autoSaveEnabled, isDirty, formData]);
 
   const initializeForm = async () => {
+    if (regionDetectionComplete) return;
+    
     // Check if resuming a draft
     const resumeDraft = location.state?.resumeDraft;
     if (resumeDraft) {
@@ -79,6 +87,7 @@ export const useConsentForm = () => {
       const region = REGIONS[resumeDraft.regionCode] || REGIONS.PTA;
       setCurrentRegion(region);
       setRegionDetected(true);
+      setRegionDetectionComplete(true);
       
       toast({
         title: "Draft Resumed",
@@ -93,10 +102,13 @@ export const useConsentForm = () => {
   };
 
   const detectAndSetRegion = async () => {
+    if (regionDetectionComplete) return;
+    
     try {
       const region = await getRegionWithFallback();
       setCurrentRegion(region);
       setRegionDetected(true);
+      setRegionDetectionComplete(true);
       
       // Automatically update form data with region information
       setFormData(prev => ({
@@ -122,6 +134,7 @@ export const useConsentForm = () => {
       // Set default region
       const defaultRegion = REGIONS.PTA;
       setCurrentRegion(defaultRegion);
+      setRegionDetectionComplete(true);
       setFormData(prev => ({
         ...prev,
         region: defaultRegion.name,
