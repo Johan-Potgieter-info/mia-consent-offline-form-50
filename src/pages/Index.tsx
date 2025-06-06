@@ -3,7 +3,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FileText, Globe, Shield, Clock } from 'lucide-react';
 
+console.log("Index component loaded");
+
 const Index = () => {
+  console.log("Index component rendering");
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white">
       {/* Header */}
