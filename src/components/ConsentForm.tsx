@@ -28,7 +28,8 @@ const ConsentForm = () => {
     isResuming,
     lastSaved,
     isDirty,
-    formatLastSaved
+    formatLastSaved,
+    dbInitialized
   } = useConsentForm();
 
   const sections = [
@@ -74,6 +75,7 @@ const ConsentForm = () => {
           lastSaved={lastSaved}
           formatLastSaved={formatLastSaved}
           onSave={saveForm}
+          dbInitialized={dbInitialized}
         />
 
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">

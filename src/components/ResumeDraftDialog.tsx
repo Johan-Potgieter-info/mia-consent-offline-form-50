@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Clock, FileText, Trash2, User } from 'lucide-react';
+import { Clock, FileText, Trash2, User, AlertCircle } from 'lucide-react';
 import { getAllDrafts, deleteDraft } from '../utils/indexedDB';
 import {
   Dialog,
@@ -9,11 +9,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from './ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const ResumeDraftDialog = () => {
   const [drafts, setDrafts] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (isOpen) {
@@ -22,11 +27,21 @@ const ResumeDraftDialog = () => {
   }, [isOpen]);
 
   const loadDrafts = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
       const allDrafts = await getAllDrafts();
       setDrafts(allDrafts);
     } catch (error) {
       console.error('Failed to load drafts:', error);
+      setError('Could not load saved forms. Please try again.');
+      toast({
+        title: "Error Loading Drafts",
+        description: "Could not load your saved forms",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -36,9 +51,18 @@ const ResumeDraftDialog = () => {
     
     try {
       await deleteDraft(draftId);
+      toast({
+        title: "Draft Deleted",
+        description: "Form draft was successfully removed",
+      });
       await loadDrafts(); // Reload drafts after deletion
     } catch (error) {
       console.error('Failed to delete draft:', error);
+      toast({
+        title: "Delete Failed",
+        description: "Could not delete the draft. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -86,16 +110,42 @@ const ResumeDraftDialog = () => {
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-gray-900">Resume a Saved Form</DialogTitle>
+          <DialogDescription className="text-sm text-gray-500">
+            Select a previously saved form to continue where you left off
+          </DialogDescription>
         </DialogHeader>
         <div className="max-h-96 overflow-y-auto">
-          {drafts.length === 0 ? (
+          {isLoading && (
+            <div className="text-center py-12">
+              <div className="animate-spin w-8 h-8 mx-auto border-4 border-gray-300 border-t-[#ef4805] rounded-full mb-4"></div>
+              <p className="text-gray-500">Loading your saved forms...</p>
+            </div>
+          )}
+
+          {error && !isLoading && (
+            <div className="text-center py-12 text-red-500">
+              <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-400" />
+              <h3 className="text-lg font-medium text-red-500 mb-2">Error Loading Drafts</h3>
+              <p>{error}</p>
+              <button 
+                onClick={loadDrafts}
+                className="mt-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-600 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          )}
+
+          {!isLoading && !error && drafts.length === 0 && (
             <div className="text-center py-12 text-gray-500">
               <FileText className="w-16 h-16 mx-auto mb-4 text-gray-300" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No Saved Forms</h3>
               <p className="text-gray-500">You don't have any unfinished forms yet.</p>
               <p className="text-sm text-gray-400 mt-1">Start a new form and it will be automatically saved as you progress.</p>
             </div>
-          ) : (
+          )}
+          
+          {!isLoading && !error && drafts.length > 0 && (
             <div className="space-y-4">
               <p className="text-sm text-gray-600 mb-4">
                 Found {drafts.length} unfinished form{drafts.length !== 1 ? 's' : ''}. Click on any form to continue where you left off.
@@ -136,8 +186,7 @@ const ResumeDraftDialog = () => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <Link
-                          to="/consent-form"
-                          state={{ resumeDraft: draft }}
+                          to={`/consent-form?draft=${encodeURIComponent(JSON.stringify(draft))}`}
                           className="inline-flex items-center px-4 py-2 bg-[#ef4805] text-white font-medium rounded-lg hover:bg-[#d63d04] transition-colors"
                           onClick={() => setIsOpen(false)}
                         >

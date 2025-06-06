@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { saveFormData, syncPendingForms, deleteDraft } from '../utils/indexedDB';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { saveFormData, syncPendingForms, deleteDraft, testDBConnection } from '../utils/indexedDB';
 import { useToast } from '@/hooks/use-toast';
 import { getRegionWithFallback, Region, REGIONS } from '../utils/regionDetection';
 
@@ -18,6 +19,7 @@ interface FormData {
 
 export const useConsentForm = () => {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('patientDetails');
   const [formData, setFormData] = useState<FormData>({});
@@ -29,14 +31,47 @@ export const useConsentForm = () => {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isDirty, setIsDirty] = useState(false);
   const [regionDetectionComplete, setRegionDetectionComplete] = useState(false);
+  const [dbInitialized, setDbInitialized] = useState(false);
   const { toast } = useToast();
+
+  // Check IndexedDB on mount
+  useEffect(() => {
+    const checkDB = async () => {
+      const isAvailable = await testDBConnection();
+      setDbInitialized(isAvailable);
+      
+      if (!isAvailable) {
+        toast({
+          title: "Storage Unavailable",
+          description: "Local storage is not available. Your form progress won't be saved.",
+          variant: "destructive",
+          duration: 6000,
+        });
+      }
+    };
+    
+    checkDB();
+  }, [toast]);
 
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
+      toast({
+        title: "Back Online",
+        description: "You are now online. Your data will sync.",
+        duration: 3000,
+      });
       syncPendingForms();
     };
-    const handleOffline = () => setIsOnline(false);
+    
+    const handleOffline = () => {
+      setIsOnline(false);
+      toast({
+        title: "Offline Mode",
+        description: "You are offline. Data will be saved locally.",
+        duration: 3000,
+      });
+    };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -55,7 +90,7 @@ export const useConsentForm = () => {
   // Separate effect for auto-save
   useEffect(() => {
     const autoSaveInterval = setInterval(() => {
-      if (autoSaveEnabled && isDirty && Object.keys(formData).length > 0) {
+      if (autoSaveEnabled && isDirty && Object.keys(formData).length > 0 && dbInitialized) {
         autoSave();
       }
     }, 30000); // Auto-save every 30 seconds
@@ -72,33 +107,76 @@ export const useConsentForm = () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       clearInterval(autoSaveInterval);
     };
-  }, [autoSaveEnabled, isDirty, formData]);
+  }, [autoSaveEnabled, isDirty, formData, dbInitialized]);
 
   const initializeForm = async () => {
     if (regionDetectionComplete) return;
     
-    // Check if resuming a draft
-    const resumeDraft = location.state?.resumeDraft;
-    if (resumeDraft) {
-      setIsResuming(true);
-      setFormData(resumeDraft);
+    try {
+      // Check for draft in URL query param first (from direct link)
+      const draftParam = searchParams.get('draft');
+      if (draftParam) {
+        try {
+          const parsedDraft = JSON.parse(decodeURIComponent(draftParam));
+          resumeDraft(parsedDraft);
+          return;
+        } catch (error) {
+          console.error('Failed to parse draft from URL:', error);
+          toast({
+            title: "Error Resuming Draft",
+            description: "Invalid draft data in URL",
+            variant: "destructive",
+          });
+        }
+      }
       
-      // Set region from draft
-      const region = REGIONS[resumeDraft.regionCode] || REGIONS.PTA;
-      setCurrentRegion(region);
-      setRegionDetected(true);
-      setRegionDetectionComplete(true);
+      // Then check for draft in location state (from ResumeDraftDialog)
+      const resumeDraft = location.state?.resumeDraft;
+      if (resumeDraft) {
+        resumeDraft(resumeDraft);
+        return;
+      }
       
+      // No draft found, detect region for new form
+      await detectAndSetRegion();
+    } catch (error) {
+      console.error('Form initialization error:', error);
       toast({
-        title: "Draft Resumed",
-        description: `Continuing form for ${resumeDraft.patientName || 'patient'}`,
+        title: "Form Initialization Error",
+        description: "Failed to initialize form. Please refresh the page.",
+        variant: "destructive",
       });
       
-      setIsResuming(false);
-    } else {
-      // Detect region for new form
-      await detectAndSetRegion();
+      // Set default region as fallback
+      const defaultRegion = REGIONS.PTA;
+      setCurrentRegion(defaultRegion);
+      setRegionDetectionComplete(true);
+      setFormData(prev => ({
+        ...prev,
+        region: defaultRegion.name,
+        regionCode: defaultRegion.code,
+        doctor: defaultRegion.doctor,
+        practiceNumber: defaultRegion.practiceNumber
+      }));
     }
+  };
+
+  const resumeDraft = (draft: FormData) => {
+    setIsResuming(true);
+    setFormData(draft);
+    
+    // Set region from draft
+    const region = REGIONS[draft.regionCode as keyof typeof REGIONS] || REGIONS.PTA;
+    setCurrentRegion(region);
+    setRegionDetected(true);
+    setRegionDetectionComplete(true);
+    
+    toast({
+      title: "Draft Resumed",
+      description: `Continuing form for ${draft.patientName || 'patient'}`,
+    });
+    
+    setIsResuming(false);
   };
 
   const detectAndSetRegion = async () => {
@@ -163,6 +241,11 @@ export const useConsentForm = () => {
   };
 
   const autoSave = async () => {
+    if (!dbInitialized) {
+      console.log('Auto-save skipped: IndexedDB not available');
+      return;
+    }
+    
     try {
       const savedId = await saveFormData({ ...formData, timestamp: new Date().toISOString() }, true);
       setFormData(prev => ({ ...prev, id: savedId }));
@@ -175,6 +258,15 @@ export const useConsentForm = () => {
   };
 
   const saveForm = async () => {
+    if (!dbInitialized) {
+      toast({
+        title: "Storage Unavailable",
+        description: "Cannot save form: local storage is not available",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
       const savedId = await saveFormData({ ...formData, timestamp: new Date().toISOString() }, true);
       setFormData(prev => ({ ...prev, id: savedId }));
@@ -213,18 +305,20 @@ export const useConsentForm = () => {
         status: 'completed'
       };
       
-      await saveFormData(finalData, false);
-      
-      // Delete draft if resuming
-      if (formData.id && isResuming) {
-        try {
-          await deleteDraft(formData.id);
-        } catch (error) {
-          console.log('Draft deletion failed (may not exist):', error);
+      if (dbInitialized) {
+        await saveFormData(finalData, false);
+        
+        // Delete draft if resuming
+        if (formData.id && isResuming) {
+          try {
+            await deleteDraft(formData.id);
+          } catch (error) {
+            console.log('Draft deletion failed (may not exist):', error);
+          }
         }
       }
       
-      if (isOnline) {
+      if (isOnline && dbInitialized) {
         await syncPendingForms();
       }
       
@@ -271,6 +365,7 @@ export const useConsentForm = () => {
     isResuming,
     lastSaved,
     isDirty,
-    formatLastSaved
+    formatLastSaved,
+    dbInitialized
   };
 };
