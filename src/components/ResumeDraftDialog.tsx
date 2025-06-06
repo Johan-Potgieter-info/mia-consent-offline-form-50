@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Clock, FileText, Trash2, User, AlertCircle } from 'lucide-react';
-import { getAllDrafts, deleteDraft } from '../utils/indexedDB';
+import { getAllDrafts, deleteDraft } from '../utils/draftOperations';
 import {
   Dialog,
   DialogContent,
