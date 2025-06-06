@@ -1,11 +1,10 @@
 
 import { useState } from 'react';
-import { saveFormData, deleteDraft } from '../utils/indexedDB';
+import { useHybridStorage } from './useHybridStorage';
 import { useToast } from '@/hooks/use-toast';
 import { FormData } from '../types/formTypes';
 
 interface UseFormPersistenceProps {
-  dbInitialized: boolean;
   isOnline: boolean;
 }
 
@@ -13,7 +12,7 @@ interface UseFormPersistenceResult {
   lastSaved: Date | null;
   isDirty: boolean;
   setIsDirty: (isDirty: boolean) => void;
-  saveForm: (formData: FormData) => Promise<number | undefined>;
+  saveForm: (formData: FormData) => Promise<string | number | undefined>;
   autoSave: (formData: FormData) => Promise<void>;
   formatLastSaved: () => string;
   autoSaveStatus: 'idle' | 'saving' | 'success' | 'error';
@@ -21,7 +20,6 @@ interface UseFormPersistenceResult {
 }
 
 export const useFormPersistence = ({ 
-  dbInitialized, 
   isOnline 
 }: UseFormPersistenceProps): UseFormPersistenceResult => {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -29,6 +27,7 @@ export const useFormPersistence = ({
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
+  const { saveForm: saveToHybridStorage, capabilities } = useHybridStorage();
 
   const saveToFallbackStorage = (formData: FormData) => {
     try {
@@ -53,10 +52,10 @@ export const useFormPersistence = ({
     }
   };
 
-  const saveForm = async (formData: FormData): Promise<number | undefined> => {
-    console.log('Manual save triggered', { dbInitialized, dataKeys: Object.keys(formData) });
+  const saveForm = async (formData: FormData): Promise<string | number | undefined> => {
+    console.log('Manual save triggered', { capabilities, dataKeys: Object.keys(formData) });
     
-    if (!dbInitialized) {
+    if (!capabilities.supabase && !capabilities.indexedDB) {
       const fallbackSuccess = saveToFallbackStorage(formData);
       if (fallbackSuccess) {
         toast({
@@ -78,15 +77,15 @@ export const useFormPersistence = ({
     }
     
     try {
-      const savedId = await saveFormData({ ...formData, timestamp: new Date().toISOString() }, true);
+      const result = await saveToHybridStorage({ ...formData, timestamp: new Date().toISOString() }, true);
       setLastSaved(new Date());
       setIsDirty(false);
       setRetryCount(0);
       toast({
         title: "Form Saved",
-        description: "Your progress has been saved successfully.",
+        description: capabilities.supabase ? "Saved to cloud storage" : "Saved locally - will sync when online",
       });
-      return savedId;
+      return result?.id || result;
     } catch (error) {
       console.error('Manual save error:', error);
       
@@ -112,8 +111,8 @@ export const useFormPersistence = ({
   };
 
   const autoSave = async (formData: FormData): Promise<void> => {
-    if (!dbInitialized) {
-      console.log('Auto-save skipped: IndexedDB not available, trying fallback');
+    if (!capabilities.supabase && !capabilities.indexedDB) {
+      console.log('Auto-save skipped: No storage available, trying fallback');
       const fallbackSuccess = saveToFallbackStorage(formData);
       if (fallbackSuccess) {
         setLastSaved(new Date());
@@ -134,7 +133,7 @@ export const useFormPersistence = ({
     setAutoSaveStatus('saving');
     
     try {
-      const savedId = await saveFormData({ 
+      await saveToHybridStorage({ 
         ...formData, 
         timestamp: new Date().toISOString(),
         autoSaved: true 
@@ -144,7 +143,7 @@ export const useFormPersistence = ({
       setIsDirty(false);
       setAutoSaveStatus('success');
       setRetryCount(0);
-      console.log('Auto-saved draft successfully', savedId);
+      console.log('Auto-saved draft successfully');
       
     } catch (error) {
       console.error('Auto-save failed:', error);

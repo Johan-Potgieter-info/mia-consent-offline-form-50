@@ -1,21 +1,20 @@
 
 import { useNavigate } from 'react-router-dom';
-import { saveFormData, deleteDraft, syncPendingForms } from '../utils/indexedDB';
+import { useHybridStorage } from './useHybridStorage';
 import { useToast } from '@/hooks/use-toast';
 import { FormData, FormSubmissionResult } from '../types/formTypes';
 import { Region } from '../utils/regionDetection';
 
 interface UseFormSubmissionProps {
-  dbInitialized: boolean;
   isOnline: boolean;
 }
 
 export const useFormSubmission = ({ 
-  dbInitialized, 
   isOnline 
 }: UseFormSubmissionProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { saveForm, deleteForm, syncData, capabilities } = useHybridStorage();
 
   const submitForm = async (
     formData: FormData, 
@@ -39,33 +38,37 @@ export const useFormSubmission = ({
       const finalData = { 
         ...formData, 
         timestamp: new Date().toISOString(), 
-        synced: false,
+        synced: capabilities.supabase, // Mark as synced if saved to Supabase
         submissionId: `${formData.regionCode}-${Date.now()}`,
         status: 'completed'
       };
       
-      if (dbInitialized) {
-        await saveFormData(finalData, false);
-        
-        // Delete draft if resuming
-        if (formData.id && isResuming) {
-          try {
-            await deleteDraft(formData.id);
-          } catch (error) {
-            console.log('Draft deletion failed (may not exist):', error);
-          }
+      // Save completed form
+      const savedForm = await saveForm(finalData, false);
+      
+      // Delete draft if resuming and we have an ID
+      if (formData.id && isResuming) {
+        try {
+          await deleteForm(formData.id, true);
+        } catch (error) {
+          console.log('Draft deletion failed (may not exist):', error);
         }
       }
       
-      if (isOnline && dbInitialized) {
-        await syncPendingForms();
+      // Attempt sync if online and we have Supabase capability
+      if (isOnline && capabilities.supabase) {
+        try {
+          await syncData();
+        } catch (error) {
+          console.error('Post-submission sync failed:', error);
+        }
       }
       
       toast({
         title: "Form Submitted",
-        description: isOnline ? 
+        description: capabilities.supabase ? 
           `Form submitted successfully for ${currentRegion?.name}!` : 
-          "Form saved and will sync when online.",
+          "Form saved locally and will sync when online.",
       });
 
       // Navigate back to home after successful submission
@@ -78,9 +81,10 @@ export const useFormSubmission = ({
         message: "Form submitted successfully"
       };
     } catch (error) {
+      console.error('Form submission error:', error);
       toast({
         title: "Submission Error",
-        description: "Failed to submit form.",
+        description: "Failed to submit form. Please try again.",
         variant: "destructive",
       });
       return { 

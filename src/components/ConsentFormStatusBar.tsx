@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MapPin, AlertCircle, Save, Database, CheckCircle, Loader2, X } from 'lucide-react';
+import { MapPin, AlertCircle, Save, Database, CheckCircle, Loader2, X, Cloud, HardDrive } from 'lucide-react';
 import { Region } from '../utils/regionDetection';
 
 interface ConsentFormStatusBarProps {
@@ -39,7 +39,7 @@ const ConsentFormStatusBar = ({
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
             <CheckCircle className="w-3 h-3 mr-1" />
-            Auto-saved
+            {isOnline ? 'Synced to cloud' : 'Saved locally'}
           </span>
         );
       case 'error':
@@ -54,6 +54,31 @@ const ConsentFormStatusBar = ({
     }
   };
 
+  const getStorageIndicator = () => {
+    if (isOnline && dbInitialized) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          <Cloud className="w-3 h-3 mr-1" />
+          Cloud Storage Active
+        </span>
+      );
+    } else if (dbInitialized) {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+          <HardDrive className="w-3 h-3 mr-1" />
+          Local Storage Only
+        </span>
+      );
+    } else {
+      return (
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+          <Database className="w-3 h-3 mr-1" />
+          Browser Storage Only
+        </span>
+      );
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm p-3 mb-6 flex justify-between items-center">
       <div className="flex items-center space-x-4 flex-wrap gap-y-2">
@@ -63,12 +88,7 @@ const ConsentFormStatusBar = ({
           {isOnline ? 'Online' : 'Offline'}
         </span>
         
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          dbInitialized ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-        }`}>
-          <Database className="w-3 h-3 mr-1" />
-          {dbInitialized ? 'Storage Available' : 'Using Fallback Storage'}
-        </span>
+        {getStorageIndicator()}
         
         {currentRegion && (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">

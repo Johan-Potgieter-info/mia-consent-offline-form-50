@@ -1,13 +1,13 @@
 
 import { useState, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import { testDBConnection, getBrowserInfo, checkStorageQuota } from '../utils/databaseUtils';
 import { REGIONS } from '../utils/regionDetection';
 import { useToast } from '@/hooks/use-toast';
 import { useConnectivity } from './useConnectivity';
 import { useRegionDetection } from './useRegionDetection';
 import { useFormPersistence } from './useFormPersistence';
 import { useFormSubmission } from './useFormSubmission';
+import { useHybridStorage } from './useHybridStorage';
 import { FormData } from '../types/formTypes';
 
 export const useConsentForm = () => {
@@ -17,11 +17,11 @@ export const useConsentForm = () => {
   const [formData, setFormData] = useState<FormData>({});
   const [isResuming, setIsResuming] = useState(false);
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
-  const [dbInitialized, setDbInitialized] = useState(false);
   const { toast } = useToast();
 
   // Custom hooks
   const { isOnline } = useConnectivity();
+  const { isInitialized, capabilities } = useHybridStorage();
   const { 
     currentRegion, 
     regionDetected, 
@@ -37,52 +37,24 @@ export const useConsentForm = () => {
     formatLastSaved,
     autoSaveStatus,
     retryCount
-  } = useFormPersistence({ dbInitialized, isOnline });
-  const { submitForm } = useFormSubmission({ dbInitialized, isOnline });
+  } = useFormPersistence({ isOnline });
+  const { submitForm } = useFormSubmission({ isOnline });
 
-  // Enhanced IndexedDB initialization with better error handling
+  // Initialize form when storage and region detection are ready
   useEffect(() => {
-    const initializeStorage = async () => {
-      console.log('Initializing storage system...');
-      
-      // Get browser info for debugging
-      getBrowserInfo();
-      await checkStorageQuota();
-      
-      const isAvailable = await testDBConnection();
-      setDbInitialized(isAvailable);
-      
-      if (!isAvailable) {
-        console.warn('IndexedDB unavailable, will use fallback storage');
-        toast({
-          title: "Storage Notice",
-          description: "Using browser fallback storage. Your data will still be saved locally.",
-          variant: "default",
-          duration: 8000,
-        });
-      } else {
-        console.log('IndexedDB initialized successfully');
-      }
-    };
-    
-    initializeStorage();
-  }, [toast]);
-
-  useEffect(() => {
-    // Initialize form only once
-    if (!regionDetectionComplete) {
+    if (isInitialized && regionDetectionComplete) {
       initializeForm();
     }
-  }, [regionDetectionComplete]);
+  }, [isInitialized, regionDetectionComplete]);
 
   // Enhanced auto-save with better error handling
   useEffect(() => {
-    if (!autoSaveEnabled) return;
+    if (!autoSaveEnabled || !isInitialized) return;
 
     const autoSaveInterval = setInterval(() => {
       if (isDirty && Object.keys(formData).length > 0) {
         console.log('Auto-save triggered', { 
-          dbInitialized, 
+          capabilities, 
           isDirty, 
           hasData: Object.keys(formData).length > 0,
           autoSaveStatus 
@@ -94,9 +66,9 @@ export const useConsentForm = () => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
         // Try emergency save
-        if (dbInitialized || window.localStorage) {
+        if (capabilities.supabase || capabilities.indexedDB || window.localStorage) {
           try {
-            if (dbInitialized) {
+            if (capabilities.supabase || capabilities.indexedDB) {
               // Quick emergency save attempt
               autoSave(formData);
             } else {
@@ -123,11 +95,9 @@ export const useConsentForm = () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       clearInterval(autoSaveInterval);
     };
-  }, [autoSaveEnabled, isDirty, formData, dbInitialized, autoSave, autoSaveStatus]);
+  }, [autoSaveEnabled, isDirty, formData, capabilities, autoSave, autoSaveStatus, isInitialized]);
 
   const initializeForm = async () => {
-    if (regionDetectionComplete) return;
-    
     try {
       // Check for emergency recovery first
       const emergencyDraft = localStorage.getItem('emergencyFormDraft');
@@ -250,7 +220,7 @@ export const useConsentForm = () => {
     lastSaved,
     isDirty,
     formatLastSaved,
-    dbInitialized,
+    dbInitialized: capabilities.supabase || capabilities.indexedDB,
     autoSaveStatus,
     retryCount
   };
