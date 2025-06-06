@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FileText, Globe, Shield, Clock } from 'lucide-react';
@@ -92,17 +93,17 @@ const Index = () => {
             <div className="text-center">
               <h4 className="text-lg font-semibold text-[#ef4805] mb-2">Cape Town</h4>
               <p className="text-gray-600">Dr. Soni</p>
-              <p className="text-sm text-gray-500">Practice Number: CPT001</p>
+              <p className="text-sm text-gray-500">Practice Number: 1030817</p>
             </div>
             <div className="text-center">
               <h4 className="text-lg font-semibold text-[#ef4805] mb-2">Pretoria</h4>
               <p className="text-gray-600">Dr. Vorster</p>
-              <p className="text-sm text-gray-500">Practice Number: PTA001</p>
+              <p className="text-sm text-gray-500">Practice Number: 1227831</p>
             </div>
             <div className="text-center">
               <h4 className="text-lg font-semibold text-[#ef4805] mb-2">Johannesburg</h4>
               <p className="text-gray-600">Dr. Essop</p>
-              <p className="text-sm text-gray-500">Practice Number: JHB001</p>
+              <p className="text-sm text-gray-500">Practice Number: 1182609</p>
             </div>
           </div>
         </div>
