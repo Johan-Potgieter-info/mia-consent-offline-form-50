@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { FileText, Globe, Shield, Clock } from 'lucide-react';
@@ -142,4 +141,3 @@ const Index = () => {
 };
 
 export default Index;
-
