@@ -86,7 +86,7 @@ export const checkStorageQuota = async () => {
         quota: estimate.quota,
         usage: estimate.usage,
         available: estimate.quota ? estimate.quota - (estimate.usage || 0) : null,
-        usageDetails: estimate.usageDetails
+        usageDetails: (estimate as any).usageDetails || null
       };
       console.log('Storage quota info:', info);
       return info;
@@ -95,4 +95,54 @@ export const checkStorageQuota = async () => {
     console.error('Could not check storage quota:', error);
   }
   return null;
+};
+
+/**
+ * Test if localStorage is accessible and working
+ */
+export const testLocalStorage = (): boolean => {
+  try {
+    const testKey = '__storage_test__';
+    const testValue = 'test';
+    localStorage.setItem(testKey, testValue);
+    const retrieved = localStorage.getItem(testKey);
+    localStorage.removeItem(testKey);
+    return retrieved === testValue;
+  } catch (error) {
+    console.error('localStorage test failed:', error);
+    return false;
+  }
+};
+
+/**
+ * Test if sessionStorage is accessible and working
+ */
+export const testSessionStorage = (): boolean => {
+  try {
+    const testKey = '__session_test__';
+    const testValue = 'test';
+    sessionStorage.setItem(testKey, testValue);
+    const retrieved = sessionStorage.getItem(testKey);
+    sessionStorage.removeItem(testKey);
+    return retrieved === testValue;
+  } catch (error) {
+    console.error('sessionStorage test failed:', error);
+    return false;
+  }
+};
+
+/**
+ * Get comprehensive storage availability info
+ */
+export const getStorageCapabilities = async () => {
+  const capabilities = {
+    indexedDB: await testDBConnection(),
+    localStorage: testLocalStorage(),
+    sessionStorage: testSessionStorage(),
+    quota: await checkStorageQuota(),
+    browserInfo: getBrowserInfo()
+  };
+  
+  console.log('Storage capabilities:', capabilities);
+  return capabilities;
 };
