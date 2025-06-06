@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import { testDBConnection } from '../utils/databaseUtils';
+import { testDBConnection, getBrowserInfo, checkStorageQuota } from '../utils/databaseUtils';
 import { REGIONS } from '../utils/regionDetection';
 import { useToast } from '@/hooks/use-toast';
 import { useConnectivity } from './useConnectivity';
@@ -34,27 +34,38 @@ export const useConsentForm = () => {
     setIsDirty, 
     saveForm, 
     autoSave, 
-    formatLastSaved 
+    formatLastSaved,
+    autoSaveStatus,
+    retryCount
   } = useFormPersistence({ dbInitialized, isOnline });
   const { submitForm } = useFormSubmission({ dbInitialized, isOnline });
 
-  // Check IndexedDB on mount
+  // Enhanced IndexedDB initialization with better error handling
   useEffect(() => {
-    const checkDB = async () => {
+    const initializeStorage = async () => {
+      console.log('Initializing storage system...');
+      
+      // Get browser info for debugging
+      getBrowserInfo();
+      await checkStorageQuota();
+      
       const isAvailable = await testDBConnection();
       setDbInitialized(isAvailable);
       
       if (!isAvailable) {
+        console.warn('IndexedDB unavailable, will use fallback storage');
         toast({
-          title: "Storage Unavailable",
-          description: "Local storage is not available. Your form progress won't be saved.",
-          variant: "destructive",
-          duration: 6000,
+          title: "Storage Notice",
+          description: "Using browser fallback storage. Your data will still be saved locally.",
+          variant: "default",
+          duration: 8000,
         });
+      } else {
+        console.log('IndexedDB initialized successfully');
       }
     };
     
-    checkDB();
+    initializeStorage();
   }, [toast]);
 
   useEffect(() => {
@@ -64,33 +75,80 @@ export const useConsentForm = () => {
     }
   }, [regionDetectionComplete]);
 
-  // Separate effect for auto-save
+  // Enhanced auto-save with better error handling
   useEffect(() => {
+    if (!autoSaveEnabled) return;
+
     const autoSaveInterval = setInterval(() => {
-      if (autoSaveEnabled && isDirty && Object.keys(formData).length > 0 && dbInitialized) {
+      if (isDirty && Object.keys(formData).length > 0) {
+        console.log('Auto-save triggered', { 
+          dbInitialized, 
+          isDirty, 
+          hasData: Object.keys(formData).length > 0,
+          autoSaveStatus 
+        });
         autoSave(formData);
       }
     }, 30000); // Auto-save every 30 seconds
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
+        // Try emergency save
+        if (dbInitialized || window.localStorage) {
+          try {
+            if (dbInitialized) {
+              // Quick emergency save attempt
+              autoSave(formData);
+            } else {
+              // Emergency localStorage save
+              localStorage.setItem('emergencyFormDraft', JSON.stringify({
+                ...formData,
+                timestamp: new Date().toISOString(),
+                emergency: true
+              }));
+            }
+          } catch (error) {
+            console.error('Emergency save failed:', error);
+          }
+        }
+        
         e.preventDefault();
-        e.returnValue = '';
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
       }
     };
+    
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       clearInterval(autoSaveInterval);
     };
-  }, [autoSaveEnabled, isDirty, formData, dbInitialized, autoSave]);
+  }, [autoSaveEnabled, isDirty, formData, dbInitialized, autoSave, autoSaveStatus]);
 
   const initializeForm = async () => {
     if (regionDetectionComplete) return;
     
     try {
-      // Check for draft in URL query param first (from direct link)
+      // Check for emergency recovery first
+      const emergencyDraft = localStorage.getItem('emergencyFormDraft');
+      if (emergencyDraft) {
+        try {
+          const parsedEmergency = JSON.parse(emergencyDraft);
+          console.log('Found emergency draft, recovering...');
+          setFormData(parsedEmergency);
+          localStorage.removeItem('emergencyFormDraft');
+          toast({
+            title: "Form Recovered",
+            description: "Recovered your form from an unexpected closure",
+          });
+          return;
+        } catch (error) {
+          console.error('Failed to parse emergency draft:', error);
+          localStorage.removeItem('emergencyFormDraft');
+        }
+      }
+
+      // Check for draft in URL query param first
       const draftParam = searchParams.get('draft');
       if (draftParam) {
         try {
@@ -107,7 +165,7 @@ export const useConsentForm = () => {
         }
       }
       
-      // Then check for draft in location state (from ResumeDraftDialog)
+      // Check for draft in location state
       const resumeDraftFromState = location.state?.resumeDraft;
       if (resumeDraftFromState) {
         resumeDraftHandler(resumeDraftFromState);
@@ -117,7 +175,6 @@ export const useConsentForm = () => {
       // No draft found, detect region for new form
       const region = await detectAndSetRegion();
       
-      // Automatically update form data with region information
       setFormData(prev => ({
         ...prev,
         region: region.name,
@@ -140,7 +197,6 @@ export const useConsentForm = () => {
     setIsResuming(true);
     setFormData(draft);
     
-    // Set region from draft
     const region = REGIONS[draft.regionCode as keyof typeof REGIONS] || REGIONS.PTA;
     
     toast({
@@ -194,6 +250,8 @@ export const useConsentForm = () => {
     lastSaved,
     isDirty,
     formatLastSaved,
-    dbInitialized
+    dbInitialized,
+    autoSaveStatus,
+    retryCount
   };
 };

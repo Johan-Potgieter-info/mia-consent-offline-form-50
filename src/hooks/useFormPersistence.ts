@@ -16,6 +16,8 @@ interface UseFormPersistenceResult {
   saveForm: (formData: FormData) => Promise<number | undefined>;
   autoSave: (formData: FormData) => Promise<void>;
   formatLastSaved: () => string;
+  autoSaveStatus: 'idle' | 'saving' | 'success' | 'error';
+  retryCount: number;
 }
 
 export const useFormPersistence = ({ 
@@ -24,50 +26,151 @@ export const useFormPersistence = ({
 }: UseFormPersistenceProps): UseFormPersistenceResult => {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
 
+  const saveToFallbackStorage = (formData: FormData) => {
+    try {
+      const dataToStore = {
+        ...formData,
+        timestamp: new Date().toISOString(),
+        fallbackStorage: true
+      };
+      localStorage.setItem('formDraftFallback', JSON.stringify(dataToStore));
+      console.log('Saved to localStorage fallback');
+      return true;
+    } catch (error) {
+      console.error('Fallback storage failed:', error);
+      try {
+        sessionStorage.setItem('formDraftSession', JSON.stringify(formData));
+        console.log('Saved to sessionStorage as last resort');
+        return true;
+      } catch (sessionError) {
+        console.error('Session storage also failed:', sessionError);
+        return false;
+      }
+    }
+  };
+
   const saveForm = async (formData: FormData): Promise<number | undefined> => {
+    console.log('Manual save triggered', { dbInitialized, dataKeys: Object.keys(formData) });
+    
     if (!dbInitialized) {
-      toast({
-        title: "Storage Unavailable",
-        description: "Cannot save form: local storage is not available",
-        variant: "destructive",
-      });
-      return;
+      const fallbackSuccess = saveToFallbackStorage(formData);
+      if (fallbackSuccess) {
+        toast({
+          title: "Saved to Browser Storage",
+          description: "Database unavailable - saved locally instead",
+          variant: "default",
+        });
+        setLastSaved(new Date());
+        setIsDirty(false);
+        return Date.now();
+      } else {
+        toast({
+          title: "Save Failed",
+          description: "Unable to save form data - please copy important information",
+          variant: "destructive",
+        });
+        return;
+      }
     }
     
     try {
       const savedId = await saveFormData({ ...formData, timestamp: new Date().toISOString() }, true);
       setLastSaved(new Date());
       setIsDirty(false);
+      setRetryCount(0);
       toast({
         title: "Form Saved",
-        description: "Your progress has been saved locally.",
+        description: "Your progress has been saved successfully.",
       });
       return savedId;
     } catch (error) {
+      console.error('Manual save error:', error);
+      
+      // Try fallback storage on manual save failure
+      const fallbackSuccess = saveToFallbackStorage(formData);
+      if (fallbackSuccess) {
+        toast({
+          title: "Saved to Browser Storage",
+          description: "Primary storage failed - saved to browser backup",
+          variant: "default",
+        });
+        setLastSaved(new Date());
+        setIsDirty(false);
+        return Date.now();
+      }
+      
       toast({
         title: "Save Error",
-        description: "Failed to save form data.",
+        description: "Failed to save form data. Please try again.",
         variant: "destructive",
       });
-      console.error('Save error:', error);
     }
   };
 
   const autoSave = async (formData: FormData): Promise<void> => {
     if (!dbInitialized) {
-      console.log('Auto-save skipped: IndexedDB not available');
+      console.log('Auto-save skipped: IndexedDB not available, trying fallback');
+      const fallbackSuccess = saveToFallbackStorage(formData);
+      if (fallbackSuccess) {
+        setLastSaved(new Date());
+        setIsDirty(false);
+        setAutoSaveStatus('success');
+      } else {
+        setAutoSaveStatus('error');
+      }
+      return;
+    }
+
+    // Don't auto-save if we don't have essential data
+    if (!formData.patientName && !formData.idNumber && !formData.cellPhone) {
+      console.log('Auto-save skipped: insufficient data to save');
       return;
     }
     
+    setAutoSaveStatus('saving');
+    
     try {
-      const savedId = await saveFormData({ ...formData, timestamp: new Date().toISOString() }, true);
+      const savedId = await saveFormData({ 
+        ...formData, 
+        timestamp: new Date().toISOString(),
+        autoSaved: true 
+      }, true);
+      
       setLastSaved(new Date());
       setIsDirty(false);
-      console.log('Auto-saved draft', savedId);
+      setAutoSaveStatus('success');
+      setRetryCount(0);
+      console.log('Auto-saved draft successfully', savedId);
+      
     } catch (error) {
       console.error('Auto-save failed:', error);
+      setAutoSaveStatus('error');
+      setRetryCount(prev => prev + 1);
+      
+      // Try fallback on auto-save failure
+      const fallbackSuccess = saveToFallbackStorage(formData);
+      if (fallbackSuccess) {
+        setLastSaved(new Date());
+        setIsDirty(false);
+        setAutoSaveStatus('success');
+        console.log('Auto-save failed but fallback succeeded');
+      } else {
+        console.error('Both auto-save and fallback failed');
+        
+        // Show error toast only after multiple failures
+        if (retryCount >= 2) {
+          toast({
+            title: "Auto-save Issues",
+            description: "Having trouble saving automatically. Please save manually.",
+            variant: "destructive",
+            duration: 5000,
+          });
+        }
+      }
     }
   };
 
@@ -86,5 +189,7 @@ export const useFormPersistence = ({
     saveForm,
     autoSave,
     formatLastSaved,
+    autoSaveStatus,
+    retryCount,
   };
 };

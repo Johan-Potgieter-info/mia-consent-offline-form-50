@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useConsentForm } from '../hooks/useConsentForm';
 import ConsentFormHeader from './ConsentFormHeader';
@@ -28,7 +29,9 @@ const ConsentForm = () => {
     lastSaved,
     isDirty,
     formatLastSaved,
-    dbInitialized
+    dbInitialized,
+    autoSaveStatus,
+    retryCount
   } = useConsentForm();
 
   const sections = [
@@ -75,6 +78,8 @@ const ConsentForm = () => {
           formatLastSaved={formatLastSaved}
           onSave={saveForm}
           dbInitialized={dbInitialized}
+          autoSaveStatus={autoSaveStatus}
+          retryCount={retryCount}
         />
 
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">

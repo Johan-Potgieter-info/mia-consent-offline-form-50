@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MapPin, AlertCircle, Save, Database } from 'lucide-react';
+import { MapPin, AlertCircle, Save, Database, CheckCircle, Loader2, X } from 'lucide-react';
 import { Region } from '../utils/regionDetection';
 
 interface ConsentFormStatusBarProps {
@@ -11,6 +11,8 @@ interface ConsentFormStatusBarProps {
   formatLastSaved: () => string;
   onSave: () => void;
   dbInitialized?: boolean;
+  autoSaveStatus?: 'idle' | 'saving' | 'success' | 'error';
+  retryCount?: number;
 }
 
 const ConsentFormStatusBar = ({ 
@@ -20,8 +22,38 @@ const ConsentFormStatusBar = ({
   lastSaved, 
   formatLastSaved, 
   onSave,
-  dbInitialized = true
+  dbInitialized = true,
+  autoSaveStatus = 'idle',
+  retryCount = 0
 }: ConsentFormStatusBarProps) => {
+  const getAutoSaveIndicator = () => {
+    switch (autoSaveStatus) {
+      case 'saving':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+            Auto-saving...
+          </span>
+        );
+      case 'success':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+            <CheckCircle className="w-3 h-3 mr-1" />
+            Auto-saved
+          </span>
+        );
+      case 'error':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+            <X className="w-3 h-3 mr-1" />
+            Auto-save failed {retryCount > 0 && `(${retryCount} retries)`}
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-sm p-3 mb-6 flex justify-between items-center">
       <div className="flex items-center space-x-4 flex-wrap gap-y-2">
@@ -32,10 +64,10 @@ const ConsentFormStatusBar = ({
         </span>
         
         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          dbInitialized ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+          dbInitialized ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
         }`}>
           <Database className="w-3 h-3 mr-1" />
-          {dbInitialized ? 'Storage Available' : 'Storage Unavailable'}
+          {dbInitialized ? 'Storage Available' : 'Using Fallback Storage'}
         </span>
         
         {currentRegion && (
@@ -45,12 +77,14 @@ const ConsentFormStatusBar = ({
           </span>
         )}
         
-        {isDirty && (
+        {isDirty && autoSaveStatus !== 'saving' && (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
             <AlertCircle className="w-3 h-3 mr-1" />
             Unsaved changes
           </span>
         )}
+        
+        {getAutoSaveIndicator()}
         
         {lastSaved && (
           <span className="text-xs text-gray-500">
@@ -62,15 +96,14 @@ const ConsentFormStatusBar = ({
       <div className="flex space-x-2">
         <button
           onClick={onSave}
-          disabled={!dbInitialized}
           className={`flex items-center px-3 py-1.5 text-sm rounded-lg transition-colors ${
-            dbInitialized 
-            ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
-            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            autoSaveStatus === 'error' || retryCount > 0
+            ? 'bg-red-100 text-red-700 hover:bg-red-200' 
+            : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
           }`}
         >
           <Save className="w-4 h-4 mr-1" />
-          Save
+          {autoSaveStatus === 'error' || retryCount > 0 ? 'Save Now' : 'Save'}
         </button>
       </div>
     </div>
