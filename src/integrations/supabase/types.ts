@@ -9,13 +9,327 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      consent_forms: {
+        Row: {
+          account_holder_age: number | null
+          account_holder_name: string | null
+          address: string
+          age: number | null
+          allergies: string
+          birth_date: string | null
+          cell_phone: string
+          chronic_conditions: Json | null
+          consent_agreement: boolean
+          created_at: string
+          dependant_code: string | null
+          doctor: string | null
+          email: string
+          emergency_name: string
+          emergency_phone: string
+          emergency_relationship: string
+          employer_school: string | null
+          encrypted: boolean
+          gender: string
+          gp_contact: string | null
+          gp_name: string | null
+          id: string
+          id_number: string
+          last_modified: string
+          main_member: string | null
+          marital_status: string | null
+          medical_aid_name: string | null
+          medical_aid_no: string | null
+          medical_aid_plan: string | null
+          medication: string
+          occupation_grade: string | null
+          patient_name: string
+          payment_preference: string | null
+          postal_code: string | null
+          practice_number: string | null
+          region_code: string
+          region_label: string | null
+          responsible_for_payment: string
+          signature: string
+          status: string
+          submission_id: string | null
+          submission_region: string | null
+          synced: boolean
+          synced_at: string | null
+          timestamp: string
+        }
+        Insert: {
+          account_holder_age?: number | null
+          account_holder_name?: string | null
+          address: string
+          age?: number | null
+          allergies: string
+          birth_date?: string | null
+          cell_phone: string
+          chronic_conditions?: Json | null
+          consent_agreement?: boolean
+          created_at?: string
+          dependant_code?: string | null
+          doctor?: string | null
+          email: string
+          emergency_name: string
+          emergency_phone: string
+          emergency_relationship: string
+          employer_school?: string | null
+          encrypted?: boolean
+          gender: string
+          gp_contact?: string | null
+          gp_name?: string | null
+          id?: string
+          id_number: string
+          last_modified?: string
+          main_member?: string | null
+          marital_status?: string | null
+          medical_aid_name?: string | null
+          medical_aid_no?: string | null
+          medical_aid_plan?: string | null
+          medication: string
+          occupation_grade?: string | null
+          patient_name: string
+          payment_preference?: string | null
+          postal_code?: string | null
+          practice_number?: string | null
+          region_code: string
+          region_label?: string | null
+          responsible_for_payment: string
+          signature: string
+          status?: string
+          submission_id?: string | null
+          submission_region?: string | null
+          synced?: boolean
+          synced_at?: string | null
+          timestamp?: string
+        }
+        Update: {
+          account_holder_age?: number | null
+          account_holder_name?: string | null
+          address?: string
+          age?: number | null
+          allergies?: string
+          birth_date?: string | null
+          cell_phone?: string
+          chronic_conditions?: Json | null
+          consent_agreement?: boolean
+          created_at?: string
+          dependant_code?: string | null
+          doctor?: string | null
+          email?: string
+          emergency_name?: string
+          emergency_phone?: string
+          emergency_relationship?: string
+          employer_school?: string | null
+          encrypted?: boolean
+          gender?: string
+          gp_contact?: string | null
+          gp_name?: string | null
+          id?: string
+          id_number?: string
+          last_modified?: string
+          main_member?: string | null
+          marital_status?: string | null
+          medical_aid_name?: string | null
+          medical_aid_no?: string | null
+          medical_aid_plan?: string | null
+          medication?: string
+          occupation_grade?: string | null
+          patient_name?: string
+          payment_preference?: string | null
+          postal_code?: string | null
+          practice_number?: string | null
+          region_code?: string
+          region_label?: string | null
+          responsible_for_payment?: string
+          signature?: string
+          status?: string
+          submission_id?: string | null
+          submission_region?: string | null
+          synced?: boolean
+          synced_at?: string | null
+          timestamp?: string
+        }
+        Relationships: []
+      }
+      form_drafts: {
+        Row: {
+          account_holder_age: number | null
+          account_holder_name: string | null
+          address: string | null
+          age: number | null
+          allergies: string | null
+          birth_date: string | null
+          cell_phone: string | null
+          chronic_conditions: Json | null
+          consent_agreement: boolean | null
+          created_at: string
+          dependant_code: string | null
+          doctor: string | null
+          email: string | null
+          emergency_name: string | null
+          emergency_phone: string | null
+          emergency_relationship: string | null
+          employer_school: string | null
+          encrypted: boolean
+          gender: string | null
+          gp_contact: string | null
+          gp_name: string | null
+          id: string
+          id_number: string | null
+          last_modified: string
+          main_member: string | null
+          marital_status: string | null
+          medical_aid_name: string | null
+          medical_aid_no: string | null
+          medical_aid_plan: string | null
+          medication: string | null
+          occupation_grade: string | null
+          patient_name: string | null
+          payment_preference: string | null
+          postal_code: string | null
+          practice_number: string | null
+          region_code: string | null
+          responsible_for_payment: string | null
+          signature: string | null
+          status: string
+          timestamp: string
+        }
+        Insert: {
+          account_holder_age?: number | null
+          account_holder_name?: string | null
+          address?: string | null
+          age?: number | null
+          allergies?: string | null
+          birth_date?: string | null
+          cell_phone?: string | null
+          chronic_conditions?: Json | null
+          consent_agreement?: boolean | null
+          created_at?: string
+          dependant_code?: string | null
+          doctor?: string | null
+          email?: string | null
+          emergency_name?: string | null
+          emergency_phone?: string | null
+          emergency_relationship?: string | null
+          employer_school?: string | null
+          encrypted?: boolean
+          gender?: string | null
+          gp_contact?: string | null
+          gp_name?: string | null
+          id?: string
+          id_number?: string | null
+          last_modified?: string
+          main_member?: string | null
+          marital_status?: string | null
+          medical_aid_name?: string | null
+          medical_aid_no?: string | null
+          medical_aid_plan?: string | null
+          medication?: string | null
+          occupation_grade?: string | null
+          patient_name?: string | null
+          payment_preference?: string | null
+          postal_code?: string | null
+          practice_number?: string | null
+          region_code?: string | null
+          responsible_for_payment?: string | null
+          signature?: string | null
+          status?: string
+          timestamp?: string
+        }
+        Update: {
+          account_holder_age?: number | null
+          account_holder_name?: string | null
+          address?: string | null
+          age?: number | null
+          allergies?: string | null
+          birth_date?: string | null
+          cell_phone?: string | null
+          chronic_conditions?: Json | null
+          consent_agreement?: boolean | null
+          created_at?: string
+          dependant_code?: string | null
+          doctor?: string | null
+          email?: string | null
+          emergency_name?: string | null
+          emergency_phone?: string | null
+          emergency_relationship?: string | null
+          employer_school?: string | null
+          encrypted?: boolean
+          gender?: string | null
+          gp_contact?: string | null
+          gp_name?: string | null
+          id?: string
+          id_number?: string | null
+          last_modified?: string
+          main_member?: string | null
+          marital_status?: string | null
+          medical_aid_name?: string | null
+          medical_aid_no?: string | null
+          medical_aid_plan?: string | null
+          medication?: string | null
+          occupation_grade?: string | null
+          patient_name?: string | null
+          payment_preference?: string | null
+          postal_code?: string | null
+          practice_number?: string | null
+          region_code?: string | null
+          responsible_for_payment?: string | null
+          signature?: string | null
+          status?: string
+          timestamp?: string
+        }
+        Relationships: []
+      }
+      sync_queue: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          form_data: Json
+          id: string
+          last_retry_at: string | null
+          region_code: string
+          retry_count: number
+          status: string
+          submission_endpoint: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          form_data: Json
+          id?: string
+          last_retry_at?: string | null
+          region_code: string
+          retry_count?: number
+          status?: string
+          submission_endpoint: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          form_data?: Json
+          id?: string
+          last_retry_at?: string | null
+          region_code?: string
+          retry_count?: number
+          status?: string
+          submission_endpoint?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      validate_consent_form: {
+        Args: { form_data: Json }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
