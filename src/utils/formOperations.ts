@@ -1,4 +1,3 @@
-
 // Form data operations for drafts and completed forms
 
 import { initDB, FORMS_STORE, DRAFTS_STORE } from './database';
@@ -193,13 +192,5 @@ export const getFormsByRegion = async (regionCode: string): Promise<any[]> => {
   }
 };
 
-// Test IndexedDB connectivity
-export const testDBConnection = async (): Promise<boolean> => {
-  try {
-    await initDB();
-    return true;
-  } catch (error) {
-    console.error('IndexedDB connection test failed:', error);
-    return false;
-  }
-};
+// Test IndexedDB connectivity - moved to databaseUtils.ts
+export { testDBConnection } from './databaseUtils';

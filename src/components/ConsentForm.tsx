@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useConsentForm } from '../hooks/useConsentForm';
 import ConsentFormHeader from './ConsentFormHeader';
