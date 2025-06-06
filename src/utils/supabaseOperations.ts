@@ -5,6 +5,99 @@ import { supabase } from '../integrations/supabase/client';
 import { FormData } from '../types/formTypes';
 
 /**
+ * Map form data to database schema (camelCase to snake_case)
+ */
+const mapFormDataToDatabase = (formData: FormData, isDraft: boolean = false) => {
+  const mapped: any = {
+    // Remove the local id since Supabase will generate its own UUID
+    patient_name: formData.patientName || '',
+    id_number: formData.idNumber || '',
+    marital_status: formData.maritalStatus || null,
+    gender: formData.gender || '',
+    employer_school: formData.employerSchool || null,
+    occupation_grade: formData.occupationGrade || null,
+    cell_phone: formData.cellPhone || '',
+    email: formData.email || '',
+    address: formData.address || '',
+    postal_code: formData.postalCode || null,
+    responsible_for_payment: formData.responsibleForPayment || '',
+    account_holder_name: formData.accountHolderName || null,
+    account_holder_age: formData.accountHolderAge || null,
+    gp_name: formData.gpName || null,
+    gp_contact: formData.gpContact || null,
+    allergies: formData.allergies || '',
+    medication: formData.medication || '',
+    chronic_conditions: formData.chronicConditions || [],
+    age: formData.age || null,
+    birth_date: formData.birthDate || null,
+    payment_preference: formData.paymentPreference || null,
+    medical_aid_name: formData.medicalAidName || null,
+    medical_aid_no: formData.medicalAidNo || null,
+    medical_aid_plan: formData.medicalAidPlan || null,
+    main_member: formData.mainMember || null,
+    dependant_code: formData.dependantCode || null,
+    emergency_name: formData.emergencyName || '',
+    emergency_relationship: formData.emergencyRelationship || '',
+    emergency_phone: formData.emergencyPhone || '',
+    consent_agreement: formData.consentAgreement || false,
+    signature: formData.signature || '',
+    doctor: formData.doctor || null,
+    practice_number: formData.practiceNumber || null,
+    region_code: formData.regionCode || 'PTA',
+    encrypted: false,
+    status: isDraft ? 'draft' : 'completed',
+  };
+
+  return mapped;
+};
+
+/**
+ * Map database data back to form data (snake_case to camelCase)
+ */
+const mapDatabaseToFormData = (dbData: any): FormData => {
+  return {
+    id: dbData.id, // Keep the UUID as string
+    patientName: dbData.patient_name,
+    idNumber: dbData.id_number,
+    maritalStatus: dbData.marital_status,
+    gender: dbData.gender,
+    employerSchool: dbData.employer_school,
+    occupationGrade: dbData.occupation_grade,
+    cellPhone: dbData.cell_phone,
+    email: dbData.email,
+    address: dbData.address,
+    postalCode: dbData.postal_code,
+    responsibleForPayment: dbData.responsible_for_payment,
+    accountHolderName: dbData.account_holder_name,
+    accountHolderAge: dbData.account_holder_age,
+    gpName: dbData.gp_name,
+    gpContact: dbData.gp_contact,
+    allergies: dbData.allergies,
+    medication: dbData.medication,
+    chronicConditions: dbData.chronic_conditions,
+    age: dbData.age,
+    birthDate: dbData.birth_date,
+    paymentPreference: dbData.payment_preference,
+    medicalAidName: dbData.medical_aid_name,
+    medicalAidNo: dbData.medical_aid_no,
+    medicalAidPlan: dbData.medical_aid_plan,
+    mainMember: dbData.main_member,
+    dependantCode: dbData.dependant_code,
+    emergencyName: dbData.emergency_name,
+    emergencyRelationship: dbData.emergency_relationship,
+    emergencyPhone: dbData.emergency_phone,
+    consentAgreement: dbData.consent_agreement,
+    signature: dbData.signature,
+    doctor: dbData.doctor,
+    practiceNumber: dbData.practice_number,
+    regionCode: dbData.region_code,
+    region: dbData.region_code, // For backward compatibility
+    timestamp: dbData.timestamp,
+    lastModified: dbData.last_modified,
+  };
+};
+
+/**
  * Save form data to Supabase
  * @param formData Form data to save
  * @param isDraft Whether this is a draft or completed form
@@ -16,11 +109,9 @@ export const saveFormToSupabase = async (formData: FormData, isDraft: boolean = 
     const timestamp = new Date().toISOString();
     
     const dataToSave = {
-      ...formData,
+      ...mapFormDataToDatabase(formData, isDraft),
       timestamp,
       last_modified: timestamp,
-      encrypted: false, // Data is already encrypted at transport level with Supabase
-      status: isDraft ? 'draft' : 'completed',
     };
 
     const { data, error } = await supabase
@@ -35,7 +126,7 @@ export const saveFormToSupabase = async (formData: FormData, isDraft: boolean = 
     }
 
     console.log(`Form saved to Supabase ${tableName}:`, data.id);
-    return data;
+    return mapDatabaseToFormData(data);
   } catch (error) {
     console.error('Error saving to Supabase:', error);
     throw error;
@@ -44,7 +135,7 @@ export const saveFormToSupabase = async (formData: FormData, isDraft: boolean = 
 
 /**
  * Update existing form data in Supabase
- * @param id Form ID
+ * @param id Form ID (UUID string)
  * @param formData Updated form data
  * @param isDraft Whether this is a draft or completed form
  * @returns Promise with updated form data
@@ -55,7 +146,7 @@ export const updateFormInSupabase = async (id: string, formData: FormData, isDra
     const timestamp = new Date().toISOString();
     
     const dataToUpdate = {
-      ...formData,
+      ...mapFormDataToDatabase(formData, isDraft),
       last_modified: timestamp,
     };
 
@@ -72,7 +163,7 @@ export const updateFormInSupabase = async (id: string, formData: FormData, isDra
     }
 
     console.log(`Form updated in Supabase ${tableName}:`, data.id);
-    return data;
+    return mapDatabaseToFormData(data);
   } catch (error) {
     console.error('Error updating in Supabase:', error);
     throw error;
@@ -98,7 +189,7 @@ export const getFormsFromSupabase = async (isDraft: boolean = false): Promise<an
       throw error;
     }
 
-    return data || [];
+    return (data || []).map(mapDatabaseToFormData);
   } catch (error) {
     console.error('Error fetching from Supabase:', error);
     throw error;
@@ -107,7 +198,7 @@ export const getFormsFromSupabase = async (isDraft: boolean = false): Promise<an
 
 /**
  * Delete form from Supabase
- * @param id Form ID
+ * @param id Form ID (UUID string)
  * @param isDraft Whether this is a draft or completed form
  * @returns Promise that resolves when deleted
  */
@@ -153,7 +244,7 @@ export const getFormsByRegionFromSupabase = async (regionCode: string, isDraft: 
       throw error;
     }
 
-    return data || [];
+    return (data || []).map(mapDatabaseToFormData);
   } catch (error) {
     console.error('Error fetching by region from Supabase:', error);
     throw error;
