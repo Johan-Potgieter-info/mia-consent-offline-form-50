@@ -11,6 +11,7 @@ import {
   DialogTrigger,
   DialogDescription,
 } from './ui/dialog';
+import { Button } from './ui/button';
 import { useToast } from '@/hooks/use-toast';
 
 const ResumeDraftDialog = () => {
@@ -19,6 +20,8 @@ const ResumeDraftDialog = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+
+  console.log('ResumeDraftDialog component rendered');
 
   useEffect(() => {
     if (isOpen) {
@@ -32,6 +35,7 @@ const ResumeDraftDialog = () => {
     try {
       const allDrafts = await getAllDrafts();
       setDrafts(allDrafts);
+      console.log('Loaded drafts:', allDrafts.length);
     } catch (error) {
       console.error('Failed to load drafts:', error);
       setError('Could not load saved forms. Please try again.');
@@ -55,7 +59,7 @@ const ResumeDraftDialog = () => {
         title: "Draft Deleted",
         description: "Form draft was successfully removed",
       });
-      await loadDrafts(); // Reload drafts after deletion
+      await loadDrafts();
     } catch (error) {
       console.error('Failed to delete draft:', error);
       toast({
@@ -94,7 +98,6 @@ const ResumeDraftDialog = () => {
         doctor: selectedOption.doctor
       };
       
-      // Navigate with updated draft
       window.location.href = `/consent-form?draft=${encodeURIComponent(JSON.stringify(updatedDraft))}`;
     }
   };
@@ -102,10 +105,14 @@ const ResumeDraftDialog = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <button className="inline-flex items-center px-6 py-3 bg-white text-[#ef4805] font-semibold rounded-lg border-2 border-[#ef4805] hover:bg-orange-50 transition-colors">
+        <Button 
+          variant="outline" 
+          size="lg"
+          className="inline-flex items-center px-6 py-3 bg-white text-[#ef4805] font-semibold rounded-lg border-2 border-[#ef4805] hover:bg-orange-50 transition-colors"
+        >
           <Clock className="w-5 h-5 mr-2" />
           Resume Draft
-        </button>
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
@@ -127,12 +134,13 @@ const ResumeDraftDialog = () => {
               <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-400" />
               <h3 className="text-lg font-medium text-red-500 mb-2">Error Loading Drafts</h3>
               <p>{error}</p>
-              <button 
+              <Button 
                 onClick={loadDrafts}
-                className="mt-4 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-gray-600 transition-colors"
+                variant="outline"
+                className="mt-4"
               >
                 Try Again
-              </button>
+              </Button>
             </div>
           )}
 
@@ -173,13 +181,15 @@ const ResumeDraftDialog = () => {
                         <div className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
                           Draft
                         </div>
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           onClick={(e) => handleDeleteDraft(draft.id, e)}
-                          className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
                           title="Delete draft"
                         >
                           <Trash2 className="w-4 h-4" />
-                        </button>
+                        </Button>
                       </div>
                     </div>
                     
@@ -187,16 +197,17 @@ const ResumeDraftDialog = () => {
                       <div className="flex items-center space-x-3">
                         <Link
                           to={`/consent-form?draft=${encodeURIComponent(JSON.stringify(draft))}`}
-                          className="inline-flex items-center px-4 py-2 bg-[#ef4805] text-white font-medium rounded-lg hover:bg-[#d63d04] transition-colors"
                           onClick={() => setIsOpen(false)}
                         >
-                          Continue Form
+                          <Button className="bg-[#ef4805] hover:bg-[#d63d04]">
+                            Continue Form
+                          </Button>
                         </Link>
                         
-                        <div className="text-sm text-gray-500">
-                          Change Doctor:
+                        <div className="text-sm text-gray-500 flex items-center">
+                          <span className="mr-2">Change Doctor:</span>
                           <select
-                            className="ml-2 px-2 py-1 border border-gray-300 rounded text-sm"
+                            className="px-2 py-1 border border-gray-300 rounded text-sm"
                             value={draft.regionCode || 'PTA'}
                             onChange={(e) => handleDoctorChange(draft, e.target.value)}
                           >
