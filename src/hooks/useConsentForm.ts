@@ -13,7 +13,14 @@ export const useConsentForm = () => {
   // Custom hooks for different concerns
   const { isOnline } = useConnectivity();
   const { capabilities } = useHybridStorage();
-  const { currentRegion, regionDetected } = useRegionDetection();
+  const { 
+    currentRegion, 
+    regionDetected, 
+    showManualSelector, 
+    setRegionManually,
+    showRegionSelector,
+    hideRegionSelector 
+  } = useRegionDetection();
   
   const {
     formData,
@@ -46,6 +53,10 @@ export const useConsentForm = () => {
     isOnline,
     currentRegion,
     regionDetected,
+    showManualSelector,
+    setRegionManually,
+    showRegionSelector,
+    hideRegionSelector,
     isResuming,
     lastSaved,
     isDirty,

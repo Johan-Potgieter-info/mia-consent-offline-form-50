@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, MapPin, Wifi, WifiOff, RefreshCw } from 'lucide-react';
@@ -7,6 +8,7 @@ import { useConnectivity } from '../hooks/useConnectivity';
 import { useRegionDetection } from '../hooks/useRegionDetection';
 import { useHybridStorage } from '../hooks/useHybridStorage';
 import ResumeDraftDialog from '../components/ResumeDraftDialog';
+import RegionSelector from '../components/RegionSelector';
 import { FormData } from '../types/formTypes';
 
 const Index = () => {
@@ -15,7 +17,14 @@ const Index = () => {
   const [isLoadingDrafts, setIsLoadingDrafts] = useState(false);
   
   const { isOnline } = useConnectivity();
-  const { currentRegion, detectAndSetRegion, regionDetected } = useRegionDetection();
+  const { 
+    currentRegion, 
+    detectAndSetRegion, 
+    regionDetected, 
+    showManualSelector,
+    setRegionManually,
+    showRegionSelector 
+  } = useRegionDetection();
   const { getForms, capabilities, isInitialized } = useHybridStorage();
 
   console.log('Index component loaded');
@@ -70,6 +79,16 @@ const Index = () => {
       <span className="text-blue-600">
         {currentRegion ? currentRegion.name : 'Detecting location...'}
       </span>
+      {currentRegion && (
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={showRegionSelector}
+          className="text-xs h-6 px-2"
+        >
+          Change
+        </Button>
+      )}
     </div>
   );
 
@@ -112,6 +131,13 @@ const Index = () => {
           <ConnectionIndicator />
           <RegionIndicator />
         </div>
+
+        {/* Manual Region Selector */}
+        <RegionSelector
+          onRegionSelect={setRegionManually}
+          currentRegion={currentRegion}
+          isVisible={showManualSelector}
+        />
 
         {/* Main Actions */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">

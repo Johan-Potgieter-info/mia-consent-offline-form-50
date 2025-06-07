@@ -8,6 +8,7 @@ import ConsentFormContent from './ConsentFormContent';
 import ConsentFormNavigation from './ConsentFormNavigation';
 import BackToStartButton from './BackToStartButton';
 import SaveConfirmation from './SaveConfirmation';
+import RegionSelector from './RegionSelector';
 import FormSection from './FormSection';
 import PatientDetailsSection from './PatientDetailsSection';
 import AccountHolderSection from './AccountHolderSection';
@@ -30,6 +31,8 @@ const ConsentForm = () => {
     isOnline,
     currentRegion,
     regionDetected,
+    showManualSelector,
+    setRegionManually,
     isResuming,
     lastSaved,
     isDirty,
@@ -102,6 +105,13 @@ const ConsentForm = () => {
             onDiscard={handleDiscard}
           />
         </div>
+
+        {/* Manual Region Selector */}
+        <RegionSelector
+          onRegionSelect={setRegionManually}
+          currentRegion={currentRegion}
+          isVisible={showManualSelector}
+        />
 
         <ConsentFormProgress 
           currentSection={activeSection}
