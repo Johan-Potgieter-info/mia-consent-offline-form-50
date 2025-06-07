@@ -18,13 +18,25 @@
       "src": "/lovable-uploads/2741077b-1d2b-4fa2-9829-1d43a1a54427.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/lovable-uploads/2741077b-1d2b-4fa2-9829-1d43a1a54427.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/lovable-uploads/2741077b-1d2b-4fa2-9829-1d43a1a54427.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/lovable-uploads/2741077b-1d2b-4fa2-9829-1d43a1a54427.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
