@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Clock, FileText, Trash2, User, AlertCircle } from 'lucide-react';
-import { getAllDrafts, deleteDraft } from '../utils/draftOperations';
+import { useHybridStorage } from '../hooks/useHybridStorage';
 import {
   Dialog,
   DialogContent,
@@ -20,20 +20,22 @@ const ResumeDraftDialog = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { getForms, deleteForm, isInitialized } = useHybridStorage();
 
   console.log('ResumeDraftDialog component rendered');
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && isInitialized) {
       loadDrafts();
     }
-  }, [isOpen]);
+  }, [isOpen, isInitialized]);
 
   const loadDrafts = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const allDrafts = await getAllDrafts();
+      // Use the same method as Index.tsx to load drafts
+      const allDrafts = await getForms(true); // true for drafts
       setDrafts(allDrafts);
       console.log('Loaded drafts:', allDrafts.length);
     } catch (error) {
@@ -49,12 +51,13 @@ const ResumeDraftDialog = () => {
     }
   };
 
-  const handleDeleteDraft = async (draftId: number, e: React.MouseEvent) => {
+  const handleDeleteDraft = async (draftId: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
     try {
-      await deleteDraft(draftId);
+      // Use the same delete method as the hybrid storage system
+      await deleteForm(draftId, true); // true for drafts
       toast({
         title: "Draft Deleted",
         description: "Form draft was successfully removed",
@@ -164,17 +167,17 @@ const ResumeDraftDialog = () => {
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900 text-lg">
-                          {draft.patientName || 'Unnamed Patient'}
+                          {draft.patient_name || draft.patientName || 'Unnamed Patient'}
                         </h3>
                         <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
                           <span className="inline-flex items-center">
                             <User className="w-4 h-4 mr-1" />
                             {draft.doctor || 'Dr. Vorster'}
                           </span>
-                          <span>{draft.regionCode || 'PTA'}</span>
+                          <span>{draft.region_code || draft.regionCode || 'PTA'}</span>
                         </div>
                         <p className="text-xs text-gray-400 mt-2">
-                          Last saved: {formatDate(draft.timestamp || draft.lastModified)}
+                          Last saved: {formatDate(draft.timestamp || draft.last_modified || draft.lastModified)}
                         </p>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -208,7 +211,7 @@ const ResumeDraftDialog = () => {
                           <span className="mr-2">Change Doctor:</span>
                           <select
                             className="px-2 py-1 border border-gray-300 rounded text-sm"
-                            value={draft.regionCode || 'PTA'}
+                            value={draft.region_code || draft.regionCode || 'PTA'}
                             onChange={(e) => handleDoctorChange(draft, e.target.value)}
                           >
                             {getDoctorOptions().map((option) => (
