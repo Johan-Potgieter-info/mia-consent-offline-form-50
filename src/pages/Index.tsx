@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, MapPin, Wifi, WifiOff, RefreshCw } from 'lucide-react';
@@ -19,6 +20,7 @@ const Index = () => {
   const { getForms, capabilities, isInitialized } = useHybridStorage();
 
   console.log('Index component loaded');
+  console.log('Logo path should be: /lovable-uploads/25d24f1c-8eda-4e3e-a4f7-0412eebf2eb9.png');
 
   useEffect(() => {
     if (isInitialized) {
@@ -82,12 +84,19 @@ const Index = () => {
               src="/lovable-uploads/25d24f1c-8eda-4e3e-a4f7-0412eebf2eb9.png" 
               alt="Mia Healthcare" 
               className="h-16 w-auto"
+              onError={(e) => {
+                console.error('Logo failed to load:', e);
+                console.log('Attempted path:', e.currentTarget.src);
+              }}
+              onLoad={() => {
+                console.log('Logo loaded successfully');
+              }}
             />
           </div>
         </div>
       </div>
 
-      {/* ... keep existing code (main content, status bar, cards, etc.) */}
+      {/* Main Content */}
       <div className="max-w-4xl mx-auto p-4">
         {/* Title Section */}
         <div className="text-center mb-8 mt-8">
