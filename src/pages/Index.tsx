@@ -74,17 +74,23 @@ const Index = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-4xl mx-auto pt-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
+    <div className="min-h-screen bg-gray-50">
+      {/* Orange Header with Logo */}
+      <div className="bg-[#ef4805] p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white p-3 inline-block rounded-lg">
             <img 
               src="/lovable-uploads/25d24f1c-8eda-4e3e-a4f7-0412eebf2eb9.png" 
               alt="Mia Healthcare" 
               className="h-16 w-auto"
             />
           </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto p-4">
+        {/* Title Section */}
+        <div className="text-center mb-8 mt-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
             Mia Healthcare
           </h1>

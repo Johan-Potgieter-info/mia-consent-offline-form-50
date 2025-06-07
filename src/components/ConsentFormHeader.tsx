@@ -14,9 +14,9 @@ const ConsentFormHeader = ({ currentRegion, regionDetected, isResuming }: Consen
       <div className="max-w-4xl mx-auto">
         <div className="bg-white p-3 inline-block rounded-lg">
           <img 
-            src="https://emiyxuareujqneuyewzq.supabase.co/storage/v1/object/public/email-assets//logoWeb-ezgif.com-optiwebp.webp" 
-            alt="Mia Gesondheidsorgdienste Logo"
-            className="h-10 w-auto"
+            src="/lovable-uploads/25d24f1c-8eda-4e3e-a4f7-0412eebf2eb9.png" 
+            alt="Mia Healthcare"
+            className="h-16 w-auto"
           />
         </div>
       </div>
