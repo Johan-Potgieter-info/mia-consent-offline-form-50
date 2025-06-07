@@ -1,0 +1,8 @@
+
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mia Healthcare</string>
+    <string name="title_activity_main">Mia Healthcare</string>
+    <string name="package_name">app.lovable.aba393644b3f416b89f3910ca3b93712</string>
+    <string name="custom_url_scheme">app</string>
+</resources>
