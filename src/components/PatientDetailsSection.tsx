@@ -1,179 +1,135 @@
 
 import React from 'react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import AndroidDatePicker from './AndroidDatePicker';
+import { FormData } from '../types/formTypes';
 
 interface PatientDetailsSectionProps {
-  formData: any;
+  formData: FormData;
   onInputChange: (name: string, value: string) => void;
-  onCheckboxChange?: (name: string, value: string, checked: boolean) => void;
 }
 
 const PatientDetailsSection = ({ formData, onInputChange }: PatientDetailsSectionProps) => {
+  const handleDateChange = (date: Date | undefined) => {
+    if (date) {
+      onInputChange('dateOfBirth', date.toISOString().split('T')[0]);
+    }
+  };
+
   return (
-    <>
-      <h2 className="text-xl font-semibold text-[#ef4805] mb-4">Patient Details</h2>
-      
-      <div className="grid md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            1. Patient Name *
-          </label>
-          <input
-            type="text"
-            required
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
-            onChange={(e) => onInputChange('patientName', e.target.value)}
-          />
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="text-xl font-semibold text-gray-900">Patient Details</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="patientName" className="text-base font-medium">
+              Patient Name *
+            </Label>
+            <Input
+              id="patientName"
+              value={formData.patientName || ''}
+              onChange={(e) => onInputChange('patientName', e.target.value)}
+              className="h-12 text-base"
+              placeholder="Enter patient's full name"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="idNumber" className="text-base font-medium">
+              ID Number *
+            </Label>
+            <Input
+              id="idNumber"
+              value={formData.idNumber || ''}
+              onChange={(e) => onInputChange('idNumber', e.target.value)}
+              className="h-12 text-base"
+              placeholder="Enter ID number"
+              required
+            />
+          </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            2. Age *
-          </label>
-          <input
-            type="text"
-            required
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
-            onChange={(e) => onInputChange('age', e.target.value)}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label className="text-base font-medium">
+              Date of Birth *
+            </Label>
+            <AndroidDatePicker
+              value={formData.dateOfBirth ? new Date(formData.dateOfBirth) : undefined}
+              onChange={handleDateChange}
+              placeholder="Select date of birth"
+              className="h-12 text-base"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="gender" className="text-base font-medium">
+              Gender
+            </Label>
+            <Select value={formData.gender || ''} onValueChange={(value) => onInputChange('gender', value)}>
+              <SelectTrigger className="h-12 text-base">
+                <SelectValue placeholder="Select gender" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="male">Male</SelectItem>
+                <SelectItem value="female">Female</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+                <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            3. Birth Date *
-          </label>
-          <input
-            type="date"
-            required
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
-            onChange={(e) => onInputChange('birthDate', e.target.value)}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <Label htmlFor="phoneNumber" className="text-base font-medium">
+              Phone Number
+            </Label>
+            <Input
+              id="phoneNumber"
+              type="tel"
+              value={formData.phoneNumber || ''}
+              onChange={(e) => onInputChange('phoneNumber', e.target.value)}
+              className="h-12 text-base"
+              placeholder="Enter phone number"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-base font-medium">
+              Email Address
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email || ''}
+              onChange={(e) => onInputChange('email', e.target.value)}
+              className="h-12 text-base"
+              placeholder="Enter email address"
+            />
+          </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            4. ID No. *
-          </label>
-          <input
-            type="text"
-            required
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
-            onChange={(e) => onInputChange('idNo', e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          5. Marital Status
-        </label>
         <div className="space-y-2">
-          {['Single', 'Married', 'Divorced', 'Widowed'].map(status => (
-            <label key={status} className="flex items-center">
-              <input
-                type="radio"
-                name="maritalStatus"
-                value={status}
-                className="mr-2"
-                onChange={(e) => onInputChange('maritalStatus', e.target.value)}
-              />
-              <span className="text-sm">{status}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          6. Gender *
-        </label>
-        <div className="space-y-2">
-          {['Male', 'Female', 'Prefer not to say', 'Other'].map(gender => (
-            <label key={gender} className="flex items-center">
-              <input
-                type="radio"
-                name="gender"
-                value={gender}
-                required
-                className="mr-2"
-                onChange={(e) => onInputChange('gender', e.target.value)}
-              />
-              <span className="text-sm">{gender}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            7. Employer/School
-          </label>
-          <input
-            type="text"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
-            onChange={(e) => onInputChange('employerSchool', e.target.value)}
+          <Label htmlFor="address" className="text-base font-medium">
+            Address
+          </Label>
+          <Input
+            id="address"
+            value={formData.address || ''}
+            onChange={(e) => onInputChange('address', e.target.value)}
+            className="h-12 text-base"
+            placeholder="Enter full address"
           />
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            8. Occupation/Grade
-          </label>
-          <input
-            type="text"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
-            onChange={(e) => onInputChange('occupationGrade', e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            9. Cell Phone No. *
-          </label>
-          <input
-            type="tel"
-            required
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
-            onChange={(e) => onInputChange('cellPhone', e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            10. Email *
-          </label>
-          <input
-            type="email"
-            required
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
-            onChange={(e) => onInputChange('email', e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          11. Address *
-        </label>
-        <input
-          type="text"
-          required
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
-          onChange={(e) => onInputChange('address', e.target.value)}
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          12. Address Postal Code
-        </label>
-        <input
-          type="text"
-          className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
-          onChange={(e) => onInputChange('postalCode', e.target.value)}
-        />
-      </div>
-    </>
+      </CardContent>
+    </Card>
   );
 };
 

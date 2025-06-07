@@ -94,8 +94,8 @@ const ConsentForm = () => {
       />
 
       <div className="max-w-4xl mx-auto p-4">
-        {/* Back to Start Button */}
-        <div className="mb-4">
+        {/* Back to Start Button - prominently displayed */}
+        <div className="mb-6">
           <BackToStartButton
             isDirty={isDirty}
             onSave={handleSave}
@@ -152,7 +152,7 @@ const ConsentForm = () => {
         </div>
       </div>
 
-      {/* Save Confirmation */}
+      {/* Save Confirmation - properly positioned */}
       <SaveConfirmation
         show={showSaveConfirmation}
         message={saveMessage}
