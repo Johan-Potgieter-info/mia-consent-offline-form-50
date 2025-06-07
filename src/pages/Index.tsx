@@ -13,12 +13,11 @@ import { FormData } from '../types/formTypes';
 const Index = () => {
   const navigate = useNavigate();
   const [drafts, setDrafts] = useState<FormData[]>([]);
-  const [showResumeDraftDialog, setShowResumeDraftDialog] = useState(false);
   const [isLoadingDrafts, setIsLoadingDrafts] = useState(false);
   
   const { isOnline } = useConnectivity();
   const { currentRegion, detectAndSetRegion, regionDetected } = useRegionDetection();
-  const { getDrafts, capabilities, isInitialized } = useHybridStorage();
+  const { getForms, capabilities, isInitialized } = useHybridStorage();
 
   console.log('Index component loaded');
 
@@ -33,7 +32,7 @@ const Index = () => {
     
     setIsLoadingDrafts(true);
     try {
-      const savedDrafts = await getDrafts();
+      const savedDrafts = await getForms(true); // true for drafts
       setDrafts(savedDrafts);
     } catch (error) {
       console.error('Failed to load drafts:', error);
@@ -47,16 +46,6 @@ const Index = () => {
       await detectAndSetRegion();
     }
     navigate('/consent-form');
-  };
-
-  const handleResumeDraft = (draft: FormData) => {
-    navigate('/consent-form', { 
-      state: { resumeDraft: draft }
-    });
-  };
-
-  const handleDeleteDraft = async () => {
-    await loadDrafts();
   };
 
   const ConnectionIndicator = () => (
@@ -146,18 +135,9 @@ const Index = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
-                onClick={() => setShowResumeDraftDialog(true)}
-                variant="outline"
-                className="w-full h-14 text-lg border-2 border-blue-300 text-blue-700 hover:bg-blue-50 font-semibold"
-                size="lg"
-                disabled={isLoadingDrafts || drafts.length === 0}
-              >
-                {isLoadingDrafts ? (
-                  <RefreshCw className="w-4 h-4 animate-spin mr-2" />
-                ) : null}
-                {drafts.length === 0 ? 'No Drafts Available' : `Resume Draft (${drafts.length})`}
-              </Button>
+              <div className="w-full h-14 flex items-center">
+                <ResumeDraftDialog />
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -203,16 +183,6 @@ const Index = () => {
             Storage: {capabilities.supabase ? 'Cloud + Local' : capabilities.indexedDB ? 'Local (IndexedDB)' : 'Local (Basic)'}
           </div>
         )}
-
-        {/* Resume Draft Dialog */}
-        <ResumeDraftDialog
-          open={showResumeDraftDialog}
-          onOpenChange={setShowResumeDraftDialog}
-          drafts={drafts}
-          onResumeDraft={handleResumeDraft}
-          onDeleteDraft={handleDeleteDraft}
-          isOnline={isOnline}
-        />
       </div>
     </div>
   );
