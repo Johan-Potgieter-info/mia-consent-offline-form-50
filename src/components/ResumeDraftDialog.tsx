@@ -1,8 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Clock, FileText, Trash2, User, AlertCircle } from 'lucide-react';
-import { useHybridStorage } from '../hooks/useHybridStorage';
+import React, { useState } from 'react';
+import { Clock } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -12,97 +10,24 @@ import {
   DialogDescription,
 } from './ui/dialog';
 import { Button } from './ui/button';
-import { useToast } from '@/hooks/use-toast';
+import DraftList from './draft/DraftList';
+import { useDraftOperations } from './draft/useDraftOperations';
 
 const ResumeDraftDialog = () => {
-  const [drafts, setDrafts] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
-  const { getForms, deleteForm, isInitialized } = useHybridStorage();
+  const {
+    drafts,
+    isLoading,
+    error,
+    loadDrafts,
+    handleDeleteDraft,
+    handleDoctorChange,
+    formatDate,
+    getDoctorOptions
+  } = useDraftOperations(isOpen);
 
-  console.log('ResumeDraftDialog component rendered');
-
-  useEffect(() => {
-    if (isOpen && isInitialized) {
-      loadDrafts();
-    }
-  }, [isOpen, isInitialized]);
-
-  const loadDrafts = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      // Use the same method as Index.tsx to load drafts
-      const allDrafts = await getForms(true); // true for drafts
-      setDrafts(allDrafts);
-      console.log('Loaded drafts:', allDrafts.length);
-    } catch (error) {
-      console.error('Failed to load drafts:', error);
-      setError('Could not load saved forms. Please try again.');
-      toast({
-        title: "Error Loading Drafts",
-        description: "Could not load your saved forms",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDeleteDraft = async (draftId: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    try {
-      // Use the same delete method as the hybrid storage system
-      await deleteForm(draftId, true); // true for drafts
-      toast({
-        title: "Draft Deleted",
-        description: "Form draft was successfully removed",
-      });
-      await loadDrafts();
-    } catch (error) {
-      console.error('Failed to delete draft:', error);
-      toast({
-        title: "Delete Failed",
-        description: "Could not delete the draft. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const formatDate = (timestamp: string) => {
-    return new Date(timestamp).toLocaleDateString('en-ZA', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getDoctorOptions = () => [
-    { code: 'CPT', name: 'Cape Town', doctor: 'Dr. Soni' },
-    { code: 'PTA', name: 'Pretoria', doctor: 'Dr. Vorster' },
-    { code: 'JHB', name: 'Johannesburg', doctor: 'Dr. Essop' }
-  ];
-
-  const handleDoctorChange = (draft: any, newRegionCode: string) => {
-    const doctorOptions = getDoctorOptions();
-    const selectedOption = doctorOptions.find(option => option.code === newRegionCode);
-    
-    if (selectedOption) {
-      const updatedDraft = {
-        ...draft,
-        regionCode: selectedOption.code,
-        region: selectedOption.name,
-        doctor: selectedOption.doctor
-      };
-      
-      window.location.href = `/consent-form?draft=${encodeURIComponent(JSON.stringify(updatedDraft))}`;
-    }
+  const handleContinue = () => {
+    setIsOpen(false);
   };
 
   return (
@@ -125,109 +50,17 @@ const ResumeDraftDialog = () => {
           </DialogDescription>
         </DialogHeader>
         <div className="max-h-96 overflow-y-auto">
-          {isLoading && (
-            <div className="text-center py-12">
-              <div className="animate-spin w-8 h-8 mx-auto border-4 border-gray-300 border-t-[#ef4805] rounded-full mb-4"></div>
-              <p className="text-gray-500">Loading your saved forms...</p>
-            </div>
-          )}
-
-          {error && !isLoading && (
-            <div className="text-center py-12 text-red-500">
-              <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-400" />
-              <h3 className="text-lg font-medium text-red-500 mb-2">Error Loading Drafts</h3>
-              <p>{error}</p>
-              <Button 
-                onClick={loadDrafts}
-                variant="outline"
-                className="mt-4"
-              >
-                Try Again
-              </Button>
-            </div>
-          )}
-
-          {!isLoading && !error && drafts.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              <FileText className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Saved Forms</h3>
-              <p className="text-gray-500">You don't have any unfinished forms yet.</p>
-              <p className="text-sm text-gray-400 mt-1">Start a new form and it will be automatically saved as you progress.</p>
-            </div>
-          )}
-          
-          {!isLoading && !error && drafts.length > 0 && (
-            <div className="space-y-4">
-              <p className="text-sm text-gray-600 mb-4">
-                Found {drafts.length} unfinished form{drafts.length !== 1 ? 's' : ''}. Click on any form to continue where you left off.
-              </p>
-              {drafts.map((draft) => (
-                <div key={draft.id} className="border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
-                  <div className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 text-lg">
-                          {draft.patient_name || draft.patientName || 'Unnamed Patient'}
-                        </h3>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-                          <span className="inline-flex items-center">
-                            <User className="w-4 h-4 mr-1" />
-                            {draft.doctor || 'Dr. Vorster'}
-                          </span>
-                          <span>{draft.region_code || draft.regionCode || 'PTA'}</span>
-                        </div>
-                        <p className="text-xs text-gray-400 mt-2">
-                          Last saved: {formatDate(draft.timestamp || draft.last_modified || draft.lastModified)}
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                          Draft
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => handleDeleteDraft(draft.id, e)}
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                          title="Delete draft"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <Link
-                          to={`/consent-form?draft=${encodeURIComponent(JSON.stringify(draft))}`}
-                          onClick={() => setIsOpen(false)}
-                        >
-                          <Button className="bg-[#ef4805] hover:bg-[#d63d04]">
-                            Continue Form
-                          </Button>
-                        </Link>
-                        
-                        <div className="text-sm text-gray-500 flex items-center">
-                          <span className="mr-2">Change Doctor:</span>
-                          <select
-                            className="px-2 py-1 border border-gray-300 rounded text-sm"
-                            value={draft.region_code || draft.regionCode || 'PTA'}
-                            onChange={(e) => handleDoctorChange(draft, e.target.value)}
-                          >
-                            {getDoctorOptions().map((option) => (
-                              <option key={option.code} value={option.code}>
-                                {option.doctor} ({option.name})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <DraftList
+            drafts={drafts}
+            isLoading={isLoading}
+            error={error}
+            onRetry={loadDrafts}
+            onDeleteDraft={handleDeleteDraft}
+            onDoctorChange={handleDoctorChange}
+            formatDate={formatDate}
+            getDoctorOptions={getDoctorOptions}
+            onContinue={handleContinue}
+          />
         </div>
       </DialogContent>
     </Dialog>
