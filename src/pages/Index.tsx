@@ -44,12 +44,14 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/consent-form"
-              className="inline-flex items-center px-8 py-4 bg-[#ef4805] text-white font-semibold rounded-lg hover:bg-[#d63d04] transition-colors shadow-lg text-lg"
+              className="inline-flex items-center justify-center px-8 py-4 bg-[#ef4805] text-white font-semibold rounded-lg hover:bg-[#d63d04] transition-colors shadow-lg text-lg h-16"
             >
               <FileText className="w-6 h-6 mr-3" />
               Start New Form
             </Link>
-            <ResumeDraftDialog />
+            <div className="h-16">
+              <ResumeDraftDialog />
+            </div>
           </div>
         </div>
 

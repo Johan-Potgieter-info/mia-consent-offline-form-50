@@ -1,11 +1,13 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useConsentForm } from '../hooks/useConsentForm';
 import ConsentFormHeader from './ConsentFormHeader';
 import ConsentFormProgress from './ConsentFormProgress';
 import ConsentFormStatusBar from './ConsentFormStatusBar';
 import ConsentFormContent from './ConsentFormContent';
 import ConsentFormNavigation from './ConsentFormNavigation';
+import BackToStartButton from './BackToStartButton';
+import SaveConfirmation from './SaveConfirmation';
 import FormSection from './FormSection';
 import PatientDetailsSection from './PatientDetailsSection';
 import AccountHolderSection from './AccountHolderSection';
@@ -14,6 +16,9 @@ import MedicalHistorySection from './MedicalHistorySection';
 import ConsentSection from './ConsentSection';
 
 const ConsentForm = () => {
+  const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
+  
   const {
     activeSection,
     setActiveSection,
@@ -42,6 +47,30 @@ const ConsentForm = () => {
     { id: 'consent', title: '5. Consent', component: ConsentSection },
   ];
 
+  const handleSave = async () => {
+    try {
+      await saveForm();
+      setSaveMessage('Form saved successfully to ' + (dbInitialized ? 'cloud storage' : 'local storage'));
+      setShowSaveConfirmation(true);
+      setTimeout(() => setShowSaveConfirmation(false), 3000);
+    } catch (error) {
+      console.error('Save failed:', error);
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      await submitForm();
+    } catch (error) {
+      console.error('Submit failed:', error);
+    }
+  };
+
+  const handleDiscard = () => {
+    // Reset form data or navigate away without saving
+    console.log('Form discarded');
+  };
+
   const renderActiveSection = () => {
     const section = sections.find(s => s.id === activeSection);
     if (!section) return null;
@@ -65,6 +94,15 @@ const ConsentForm = () => {
       />
 
       <div className="max-w-4xl mx-auto p-4">
+        {/* Back to Start Button */}
+        <div className="mb-4">
+          <BackToStartButton
+            isDirty={isDirty}
+            onSave={handleSave}
+            onDiscard={handleDiscard}
+          />
+        </div>
+
         <ConsentFormProgress 
           currentSection={activeSection}
           sections={sections}
@@ -76,7 +114,7 @@ const ConsentForm = () => {
           isDirty={isDirty}
           lastSaved={lastSaved}
           formatLastSaved={formatLastSaved}
-          onSave={saveForm}
+          onSave={handleSave}
           dbInitialized={dbInitialized}
           autoSaveStatus={autoSaveStatus}
           retryCount={retryCount}
@@ -107,12 +145,18 @@ const ConsentForm = () => {
               sections={sections}
               activeSection={activeSection}
               setActiveSection={setActiveSection}
-              onSave={saveForm}
-              onSubmit={submitForm}
+              onSave={handleSave}
+              onSubmit={handleSubmit}
             />
           </ConsentFormContent>
         </div>
       </div>
+
+      {/* Save Confirmation */}
+      <SaveConfirmation
+        show={showSaveConfirmation}
+        message={saveMessage}
+      />
     </div>
   );
 };
