@@ -1,15 +1,18 @@
 
 {
-  "name": "Mia",
+  "name": "Mia Healthcare Consent Form",
   "short_name": "Mia",
   "description": "Offline dental consent form application for Mia Healthcare",
   "version": "1.0.0",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "theme_color": "#ef4805",
   "background_color": "#ffffff",
   "start_url": "/",
   "scope": "/",
+  "lang": "en",
+  "categories": ["medical", "healthcare", "productivity"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/lovable-uploads/25d24f1c-8eda-4e3e-a4f7-0412eebf2eb9.png",
@@ -22,6 +25,21 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Consent Form",
+      "short_name": "New Form",
+      "description": "Start a new dental consent form",
+      "url": "/consent-form",
+      "icons": [
+        {
+          "src": "/lovable-uploads/25d24f1c-8eda-4e3e-a4f7-0412eebf2eb9.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }

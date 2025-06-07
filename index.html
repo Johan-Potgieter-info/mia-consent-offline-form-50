@@ -3,16 +3,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Mia Dental Consent Form</title>
     <meta name="description" content="Offline dental consent form application for Mia Healthcare" />
     <meta name="author" content="Mia Healthcare" />
 
-    <!-- PWA Meta Tags -->
+    <!-- Mobile optimizations -->
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Mia">
-    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
     
     <!-- Theme Color -->
     <meta name="theme-color" content="#ef4805">
@@ -21,9 +23,13 @@
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json">
     
-    <!-- Favicon - Using the medical cross icon -->
+    <!-- Favicon and app icons -->
     <link rel="icon" type="image/png" href="/lovable-uploads/25d24f1c-8eda-4e3e-a4f7-0412eebf2eb9.png">
     <link rel="apple-touch-icon" href="/lovable-uploads/25d24f1c-8eda-4e3e-a4f7-0412eebf2eb9.png">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="/src/main.tsx" as="script" crossorigin>
+    <link rel="preload" href="/src/index.css" as="style">
     
     <!-- Open Graph -->
     <meta property="og:title" content="Mia Dental Consent Form" />
@@ -53,6 +59,9 @@
             });
         });
       }
+
+      // Prevent zoom on form inputs on iOS
+      document.addEventListener('touchstart', function() {}, {passive: true});
     </script>
   </body>
 </html>

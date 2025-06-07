@@ -6,16 +6,20 @@ const config: CapacitorConfig = {
   appName: 'Mia',
   webDir: 'dist',
   bundledWebRuntime: false,
-  server: {
-    url: "https://aba39364-4b3f-416b-89f3-910ca3b93712.lovableproject.com?forceHideBadge=true",
-    cleartext: true
-  },
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
       backgroundColor: "#ef4805",
       showSpinner: false
+    },
+    App: {
+      launchUrl: 'app://localhost'
     }
+  },
+  android: {
+    allowMixedContent: true,
+    captureInput: true,
+    webContentsDebuggingEnabled: false
   }
 };
 
