@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, MapPin, Wifi, WifiOff, RefreshCw } from 'lucide-react';
@@ -75,7 +74,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Orange Header with Logo */}
+      {/* Orange Header with Mia Healthcare Logo */}
       <div className="bg-[#ef4805] p-4">
         <div className="max-w-4xl mx-auto">
           <div className="bg-white p-3 inline-block rounded-lg">
@@ -88,6 +87,7 @@ const Index = () => {
         </div>
       </div>
 
+      {/* ... keep existing code (main content, status bar, cards, etc.) */}
       <div className="max-w-4xl mx-auto p-4">
         {/* Title Section */}
         <div className="text-center mb-8 mt-8">
