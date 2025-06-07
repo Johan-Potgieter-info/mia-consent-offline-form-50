@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, MapPin, Wifi, WifiOff, RefreshCw } from 'lucide-react';
@@ -20,7 +19,7 @@ const Index = () => {
   const { getForms, capabilities, isInitialized } = useHybridStorage();
 
   console.log('Index component loaded');
-  console.log('Logo path should be: /lovable-uploads/25d24f1c-8eda-4e3e-a4f7-0412eebf2eb9.png');
+  console.log('Using new Mia logo: /lovable-uploads/2741077b-1d2b-4fa2-9829-1d43a1a54427.png');
 
   useEffect(() => {
     if (isInitialized) {
@@ -81,15 +80,15 @@ const Index = () => {
         <div className="max-w-4xl mx-auto">
           <div className="bg-white p-3 inline-block rounded-lg">
             <img 
-              src="/lovable-uploads/25d24f1c-8eda-4e3e-a4f7-0412eebf2eb9.png" 
+              src="/lovable-uploads/2741077b-1d2b-4fa2-9829-1d43a1a54427.png" 
               alt="Mia Healthcare" 
               className="h-16 w-auto"
               onError={(e) => {
-                console.error('Logo failed to load:', e);
+                console.error('New Mia logo failed to load:', e);
                 console.log('Attempted path:', e.currentTarget.src);
               }}
               onLoad={() => {
-                console.log('Logo loaded successfully');
+                console.log('New Mia logo loaded successfully');
               }}
             />
           </div>
