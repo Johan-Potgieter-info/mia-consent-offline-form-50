@@ -1,3 +1,4 @@
+
 // Region detection utility for automatic form labeling
 
 export interface Region {
@@ -30,10 +31,10 @@ export const REGIONS: Record<string, Region> = {
 
 // Detect region based on user's geolocation
 export const detectRegion = async (): Promise<Region> => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      console.log('Geolocation not supported, defaulting to PTA');
-      resolve(REGIONS.PTA);
+      console.log('Geolocation not supported');
+      reject(new Error('Geolocation not supported'));
       return;
     }
 
@@ -45,11 +46,11 @@ export const detectRegion = async (): Promise<Region> => {
         resolve(detectedRegion);
       },
       (error) => {
-        console.log('Geolocation error, defaulting to PTA:', error);
-        resolve(REGIONS.PTA);
+        console.log('Geolocation error:', error);
+        reject(error);
       },
       {
-        timeout: 10000,
+        timeout: 5000, // Shorter timeout to fail faster in sandbox
         maximumAge: 300000, // 5 minutes
         enableHighAccuracy: false
       }
@@ -86,12 +87,23 @@ export const detectRegionFromTimezone = (): Region => {
   return REGIONS.PTA;
 };
 
-// Get region with fallback methods
+// Get region with fallback methods - now throws error if all methods fail
 export const getRegionWithFallback = async (): Promise<Region> => {
   try {
     return await detectRegion();
   } catch (error) {
-    console.log('Primary detection failed, using timezone fallback');
+    console.log('Primary geolocation failed, trying timezone fallback');
+    
+    // In sandbox/preview environments, timezone detection might not be reliable either
+    // So let's throw an error to trigger manual selection
+    if (window.location.hostname.includes('lovable') || 
+        window.location.hostname.includes('sandbox') ||
+        window.location.hostname.includes('preview')) {
+      console.log('Detected sandbox/preview environment - requiring manual region selection');
+      throw new Error('Manual region selection required in sandbox environment');
+    }
+    
+    // Use timezone fallback for production environments
     return detectRegionFromTimezone();
   }
 };

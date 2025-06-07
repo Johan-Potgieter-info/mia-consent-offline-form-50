@@ -327,7 +327,7 @@ export type Database = {
     }
     Functions: {
       validate_consent_form: {
-        Args: { form_data: Json }
+        Args: Record<PropertyKey, never> | { form_data: Json }
         Returns: boolean
       }
     }

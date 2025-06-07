@@ -21,6 +21,11 @@ export const useRegionDetection = (): UseRegionDetectionResult => {
   const [showManualSelector, setShowManualSelector] = useState(false);
   const { toast } = useToast();
 
+  // Auto-detect region on mount
+  useEffect(() => {
+    detectAndSetRegion();
+  }, []);
+
   const detectAndSetRegion = async (): Promise<Region> => {
     if (regionDetectionComplete && currentRegion) return currentRegion;
     
@@ -40,7 +45,10 @@ export const useRegionDetection = (): UseRegionDetectionResult => {
     } catch (error) {
       console.error('Region detection failed:', error);
       
-      // Show manual selector instead of defaulting
+      // Don't set a default region - let user choose manually
+      setCurrentRegion(null);
+      setRegionDetected(false);
+      setRegionDetectionComplete(false);
       setShowManualSelector(true);
       
       toast({
@@ -49,11 +57,8 @@ export const useRegionDetection = (): UseRegionDetectionResult => {
         variant: "destructive",
       });
       
-      // Still set default region as fallback
-      const defaultRegion = REGIONS.PTA;
-      setCurrentRegion(defaultRegion);
-      setRegionDetectionComplete(true);
-      return defaultRegion;
+      // Return a default region for the promise, but don't set it as current
+      return REGIONS.PTA;
     }
   };
 
