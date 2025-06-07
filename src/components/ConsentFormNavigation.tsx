@@ -67,7 +67,7 @@ const ConsentFormNavigation = ({
             className="flex items-center gap-2 h-12 px-8 bg-[#ef4805] text-white text-base font-medium hover:bg-[#d63d04] transition-colors disabled:opacity-50"
           >
             <Send className="w-5 h-5" />
-            {isSubmitting ? 'Submitting...' : 'Submit Form'}
+            {isSubmitting ? 'Submitting...' : 'Submit to Cloud Database'}
           </Button>
         ) : (
           <Button
@@ -84,7 +84,7 @@ const ConsentFormNavigation = ({
         )}
       </div>
 
-      {/* Save button - full width on mobile */}
+      {/* Save button - saves as draft only */}
       <Button
         onClick={handleSave}
         disabled={isSaving}
@@ -92,7 +92,7 @@ const ConsentFormNavigation = ({
         className="w-full h-12 flex items-center justify-center gap-2 text-base font-medium border-2 border-blue-300 text-blue-700 hover:bg-blue-50 disabled:opacity-50"
       >
         <Save className="w-5 h-5" />
-        {isSaving ? 'Saving...' : 'Save Progress'}
+        {isSaving ? 'Saving Draft...' : 'Save as Draft (Local Only)'}
       </Button>
     </div>
   );

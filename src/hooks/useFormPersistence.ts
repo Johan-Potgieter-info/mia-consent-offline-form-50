@@ -34,16 +34,20 @@ export const useFormPersistence = ({
       const dataToStore = {
         ...formData,
         timestamp: new Date().toISOString(),
-        fallbackStorage: true
+        fallbackStorage: true,
+        status: 'draft'
       };
       localStorage.setItem('formDraftFallback', JSON.stringify(dataToStore));
-      console.log('Saved to localStorage fallback');
+      console.log('Saved to localStorage fallback as draft');
       return true;
     } catch (error) {
       console.error('Fallback storage failed:', error);
       try {
-        sessionStorage.setItem('formDraftSession', JSON.stringify(formData));
-        console.log('Saved to sessionStorage as last resort');
+        sessionStorage.setItem('formDraftSession', JSON.stringify({
+          ...formData,
+          status: 'draft'
+        }));
+        console.log('Saved to sessionStorage as draft');
         return true;
       } catch (sessionError) {
         console.error('Session storage also failed:', sessionError);
@@ -52,15 +56,22 @@ export const useFormPersistence = ({
     }
   };
 
+  // Save button - ALWAYS saves as draft (local only, never to cloud)
   const saveForm = async (formData: FormData): Promise<string | number | undefined> => {
-    console.log('Manual save triggered', { capabilities, dataKeys: Object.keys(formData) });
+    console.log('Manual save triggered - saving as DRAFT only');
     
-    if (!capabilities.supabase && !capabilities.indexedDB) {
-      const fallbackSuccess = saveToFallbackStorage(formData);
+    const draftData = {
+      ...formData,
+      timestamp: new Date().toISOString(),
+      status: 'draft'
+    };
+    
+    if (!capabilities.indexedDB) {
+      const fallbackSuccess = saveToFallbackStorage(draftData);
       if (fallbackSuccess) {
         toast({
-          title: "Saved to Browser Storage",
-          description: "Database unavailable - saved locally instead",
+          title: "Draft Saved",
+          description: "Form saved as draft to browser storage",
           variant: "default",
         });
         setLastSaved(new Date());
@@ -77,24 +88,25 @@ export const useFormPersistence = ({
     }
     
     try {
-      const result = await saveToHybridStorage({ ...formData, timestamp: new Date().toISOString() }, true);
+      // Force save as draft to IndexedDB only (isDraft = true)
+      const result = await saveToHybridStorage(draftData, true);
       setLastSaved(new Date());
       setIsDirty(false);
       setRetryCount(0);
       toast({
-        title: "Form Saved",
-        description: capabilities.supabase ? "Saved to cloud storage" : "Saved locally - will sync when online",
+        title: "Draft Saved",
+        description: "Form saved as draft locally - not submitted to cloud",
       });
       return result?.id || result;
     } catch (error) {
       console.error('Manual save error:', error);
       
       // Try fallback storage on manual save failure
-      const fallbackSuccess = saveToFallbackStorage(formData);
+      const fallbackSuccess = saveToFallbackStorage(draftData);
       if (fallbackSuccess) {
         toast({
-          title: "Saved to Browser Storage",
-          description: "Primary storage failed - saved to browser backup",
+          title: "Draft Saved",
+          description: "Saved as draft to browser backup",
           variant: "default",
         });
         setLastSaved(new Date());
@@ -104,16 +116,20 @@ export const useFormPersistence = ({
       
       toast({
         title: "Save Error",
-        description: "Failed to save form data. Please try again.",
+        description: "Failed to save draft. Please try again.",
         variant: "destructive",
       });
     }
   };
 
+  // Auto-save - also saves as draft only
   const autoSave = async (formData: FormData): Promise<void> => {
-    if (!capabilities.supabase && !capabilities.indexedDB) {
-      console.log('Auto-save skipped: No storage available, trying fallback');
-      const fallbackSuccess = saveToFallbackStorage(formData);
+    if (!capabilities.indexedDB) {
+      console.log('Auto-save skipped: No IndexedDB available, trying fallback');
+      const fallbackSuccess = saveToFallbackStorage({
+        ...formData,
+        status: 'draft'
+      });
       if (fallbackSuccess) {
         setLastSaved(new Date());
         setIsDirty(false);
@@ -133,17 +149,19 @@ export const useFormPersistence = ({
     setAutoSaveStatus('saving');
     
     try {
+      // Force save as draft to IndexedDB only (isDraft = true)
       await saveToHybridStorage({ 
         ...formData, 
         timestamp: new Date().toISOString(),
-        autoSaved: true 
+        autoSaved: true,
+        status: 'draft'
       }, true);
       
       setLastSaved(new Date());
       setIsDirty(false);
       setAutoSaveStatus('success');
       setRetryCount(0);
-      console.log('Auto-saved draft successfully');
+      console.log('Auto-saved as draft successfully');
       
     } catch (error) {
       console.error('Auto-save failed:', error);
@@ -151,7 +169,10 @@ export const useFormPersistence = ({
       setRetryCount(prev => prev + 1);
       
       // Try fallback on auto-save failure
-      const fallbackSuccess = saveToFallbackStorage(formData);
+      const fallbackSuccess = saveToFallbackStorage({
+        ...formData,
+        status: 'draft'
+      });
       if (fallbackSuccess) {
         setLastSaved(new Date());
         setIsDirty(false);

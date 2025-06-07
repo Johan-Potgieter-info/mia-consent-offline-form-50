@@ -22,7 +22,7 @@ export const useFormSubmission = ({
     isResuming: boolean
   ): Promise<FormSubmissionResult> => {
     try {
-      // Validate required fields
+      // Validate required fields for submission
       if (!formData.patientName || !formData.idNumber) {
         toast({
           title: "Validation Error",
@@ -35,21 +35,34 @@ export const useFormSubmission = ({
         };
       }
 
+      // Additional validation for complete submission
+      if (!formData.consentAgreement) {
+        toast({
+          title: "Validation Error",
+          description: "Please agree to the consent form before submitting.",
+          variant: "destructive",
+        });
+        return { 
+          success: false, 
+          message: "Consent agreement required"
+        };
+      }
+
       const finalData = { 
         ...formData, 
         timestamp: new Date().toISOString(), 
         synced: capabilities.supabase, // Mark as synced if saved to Supabase
         submissionId: `${formData.regionCode}-${Date.now()}`,
-        status: 'completed'
+        status: 'completed' // ONLY submitted forms get 'completed' status
       };
       
-      // Save completed form
+      // Save COMPLETED form (isDraft = false) - this goes to cloud if available
       const savedForm = await saveForm(finalData, false);
       
       // Delete draft if resuming and we have an ID
       if (formData.id && isResuming) {
         try {
-          await deleteForm(formData.id, true);
+          await deleteForm(formData.id, true); // Delete from drafts
         } catch (error) {
           console.log('Draft deletion failed (may not exist):', error);
         }
@@ -65,10 +78,10 @@ export const useFormSubmission = ({
       }
       
       toast({
-        title: "Form Submitted",
+        title: "Form Submitted Successfully",
         description: capabilities.supabase ? 
-          `Form submitted successfully for ${currentRegion?.name}!` : 
-          "Form saved locally and will sync when online.",
+          `Form submitted and saved to cloud database for ${currentRegion?.name}!` : 
+          "Form completed and saved locally. Will sync to cloud when online.",
       });
 
       // Navigate back to home after successful submission

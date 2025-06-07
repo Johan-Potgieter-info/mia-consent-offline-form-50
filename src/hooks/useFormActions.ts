@@ -40,36 +40,37 @@ export const useFormActions = ({
   } = useFormPersistence({ isOnline });
   const { submitForm: submitFormSubmission } = useFormSubmission({ isOnline });
 
-  // Enhanced auto-save with better error handling
+  // Enhanced auto-save with better error handling - SAVES AS DRAFT ONLY
   useEffect(() => {
     if (!isInitialized) return;
 
     const autoSaveInterval = setInterval(() => {
       if (isDirty && Object.keys(formData).length > 0) {
-        console.log('Auto-save triggered', { 
+        console.log('Auto-save triggered - saving as DRAFT', { 
           capabilities, 
           isDirty, 
           hasData: Object.keys(formData).length > 0,
           autoSaveStatus 
         });
-        autoSave(formData);
+        autoSave(formData); // This saves as draft only
       }
     }, 30000); // Auto-save every 30 seconds
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
-        // Try emergency save
-        if (capabilities.supabase || capabilities.indexedDB || window.localStorage) {
+        // Try emergency save as draft
+        if (capabilities.indexedDB || window.localStorage) {
           try {
-            if (capabilities.supabase || capabilities.indexedDB) {
-              // Quick emergency save attempt
+            if (capabilities.indexedDB) {
+              // Quick emergency save attempt as draft
               autoSave(formData);
             } else {
-              // Emergency localStorage save
+              // Emergency localStorage save as draft
               localStorage.setItem('emergencyFormDraft', JSON.stringify({
                 ...formData,
                 timestamp: new Date().toISOString(),
-                emergency: true
+                emergency: true,
+                status: 'draft'
               }));
             }
           } catch (error) {
@@ -90,14 +91,15 @@ export const useFormActions = ({
     };
   }, [isDirty, formData, capabilities, autoSave, autoSaveStatus, isInitialized]);
 
+  // Save button handler - ALWAYS saves as draft
   const handleSaveForm = async () => {
-    const savedId = await savePersistence(formData);
+    const savedId = await savePersistence(formData); // This saves as draft only
     if (savedId) {
-      // Update formData with the saved ID if needed
-      console.log('Form saved with ID:', savedId);
+      console.log('Form saved as draft with ID:', savedId);
     }
   };
 
+  // Submit button handler - saves as completed form to cloud
   const handleSubmitForm = async () => {
     await submitFormSubmission(formData, currentRegion, false);
   };

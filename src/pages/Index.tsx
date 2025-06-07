@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, MapPin, Wifi, WifiOff, RefreshCw } from 'lucide-react';
@@ -41,8 +40,10 @@ const Index = () => {
     
     setIsLoadingDrafts(true);
     try {
-      const savedDrafts = await getForms(true); // true for drafts
+      // Only load drafts (true) - not completed forms
+      const savedDrafts = await getForms(true);
       setDrafts(savedDrafts);
+      console.log(`Loaded ${savedDrafts.length} draft forms`);
     } catch (error) {
       console.error('Failed to load drafts:', error);
     } finally {
@@ -139,6 +140,18 @@ const Index = () => {
           isVisible={showManualSelector}
         />
 
+        {/* Show draft count if we have drafts */}
+        {drafts.length > 0 && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-blue-800 font-medium">
+              You have {drafts.length} unfinished form{drafts.length !== 1 ? 's' : ''} saved as drafts
+            </p>
+            <p className="text-blue-600 text-sm mt-1">
+              Use "Resume Draft" below to continue where you left off
+            </p>
+          </div>
+        )}
+
         {/* Main Actions */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           {/* Start New Form */}
@@ -168,10 +181,10 @@ const Index = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <RefreshCw className="w-6 h-6 text-blue-600" />
-                Resume Draft
+                Resume Draft ({drafts.length})
               </CardTitle>
               <CardDescription>
-                Continue working on a previously saved form
+                Continue working on a previously saved draft form
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -194,8 +207,8 @@ const Index = () => {
                 <span>Works offline</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>Auto-saves progress</span>
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span>Auto-saves as drafts</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -210,8 +223,8 @@ const Index = () => {
                 <span>Mobile optimized</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>Cloud sync when online</span>
+                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                <span>Submit to cloud when ready</span>
               </div>
             </div>
           </CardContent>
@@ -221,6 +234,8 @@ const Index = () => {
         {isInitialized && (
           <div className="mt-4 text-center text-sm text-gray-500">
             Storage: {capabilities.supabase ? 'Cloud + Local' : capabilities.indexedDB ? 'Local (IndexedDB)' : 'Local (Basic)'}
+            <br />
+            <span className="text-xs">Drafts saved locally • Completed forms go to cloud database</span>
           </div>
         )}
       </div>
