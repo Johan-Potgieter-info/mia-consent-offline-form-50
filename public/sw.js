@@ -1,13 +1,13 @@
 
-const CACHE_NAME = 'mia-consent-form-v3';
-const RUNTIME_CACHE = 'mia-runtime-v3';
+const CACHE_NAME = 'mia-consent-form-v4';
+const RUNTIME_CACHE = 'mia-runtime-v4';
 
-// Resources to cache immediately - only local assets
+// Resources to cache immediately - updated with correct logo
 const STATIC_RESOURCES = [
   '/',
   '/consent-form',
   '/manifest.json',
-  '/lovable-uploads/25d24f1c-8eda-4e3e-a4f7-0412eebf2eb9.png'
+  '/lovable-uploads/2741077b-1d2b-4fa2-9829-1d43a1a54427.png'
 ];
 
 // Install event - cache static resources
