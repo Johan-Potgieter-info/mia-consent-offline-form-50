@@ -9,12 +9,14 @@ interface UseFormSubmissionProps {
   isOnline: boolean;
   onOfflineSubmission?: (formData: FormData, pendingForms: FormData[]) => void;
   onOnlineSubmission?: (formData: FormData) => void;
+  onValidationErrors?: (errors: string[]) => void;
 }
 
 export const useFormSubmission = ({ 
   isOnline,
   onOfflineSubmission,
-  onOnlineSubmission 
+  onOnlineSubmission,
+  onValidationErrors
 }: UseFormSubmissionProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -22,6 +24,13 @@ export const useFormSubmission = ({
 
   const validateForm = (formData: FormData): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
+
+    console.log('Validating form data:', {
+      patientName: formData.patientName,
+      idNumber: formData.idNumber,
+      cellPhone: formData.cellPhone,
+      consentAgreement: formData.consentAgreement
+    });
 
     // Check mandatory fields
     if (!formData.patientName?.trim()) {
@@ -40,6 +49,8 @@ export const useFormSubmission = ({
       errors.push("You must agree to the consent form");
     }
 
+    console.log('Validation result:', { isValid: errors.length === 0, errors });
+
     return {
       isValid: errors.length === 0,
       errors
@@ -52,18 +63,30 @@ export const useFormSubmission = ({
     isResuming: boolean
   ): Promise<FormSubmissionResult> => {
     try {
-      console.log('Starting form submission process...');
+      console.log('Starting form submission process...', {
+        formData: {
+          patientName: formData.patientName,
+          idNumber: formData.idNumber,
+          cellPhone: formData.cellPhone,
+          consentAgreement: formData.consentAgreement
+        }
+      });
       
       // Validate the form first
       const validation = validateForm(formData);
       if (!validation.isValid) {
-        // Show validation errors
-        validation.errors.forEach(error => {
-          toast({
-            title: "Validation Error",
-            description: error,
-            variant: "destructive",
-          });
+        console.log('Validation failed:', validation.errors);
+        
+        // Trigger validation error callback to show errors in UI
+        if (onValidationErrors) {
+          onValidationErrors(validation.errors);
+        }
+        
+        // Also show toast for immediate feedback
+        toast({
+          title: "Validation Error",
+          description: "Please complete all required fields before submitting.",
+          variant: "destructive",
         });
         
         return { 
@@ -112,16 +135,12 @@ export const useFormSubmission = ({
           currentForm: finalData.patientName 
         });
         
-        // Trigger offline submission dialog
+        // Trigger offline submission dialog immediately
         if (onOfflineSubmission) {
-          onOfflineSubmission(finalData, allPending);
+          setTimeout(() => {
+            onOfflineSubmission(finalData, allPending);
+          }, 100);
         }
-        
-        // Navigate back after a delay to allow dialog to show
-        setTimeout(() => {
-          console.log('Navigating back to home...');
-          navigate('/');
-        }, 500);
         
         return { 
           success: true,
@@ -140,16 +159,12 @@ export const useFormSubmission = ({
         
         console.log('Triggering online success dialog...');
         
-        // Show online success dialog
+        // Show online success dialog immediately
         if (onOnlineSubmission) {
-          onOnlineSubmission(finalData);
+          setTimeout(() => {
+            onOnlineSubmission(finalData);
+          }, 100);
         }
-        
-        // Navigate back to home after showing dialog
-        setTimeout(() => {
-          console.log('Navigating back to home...');
-          navigate('/');
-        }, 500);
         
         return { 
           success: true,

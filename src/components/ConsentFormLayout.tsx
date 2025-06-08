@@ -8,6 +8,7 @@ import ConsentFormNavigation from './ConsentFormNavigation';
 import BackToStartButton from './BackToStartButton';
 import RegionSelector from './RegionSelector';
 import FormSection from './FormSection';
+import FormValidationErrors from './FormValidationErrors';
 import PatientDetailsSection from './PatientDetailsSection';
 import AccountHolderSection from './AccountHolderSection';
 import PaymentEmergencySection from './PaymentEmergencySection';
@@ -41,6 +42,8 @@ interface ConsentFormLayoutProps {
   setRegionManually: (region: Region) => void;
   isRegionFromDraft: boolean;
   isRegionDetected: boolean;
+  validationErrors: string[];
+  showValidationErrors: boolean;
 }
 
 const ConsentFormLayout = ({
@@ -67,7 +70,9 @@ const ConsentFormLayout = ({
   showManualSelector,
   setRegionManually,
   isRegionFromDraft,
-  isRegionDetected
+  isRegionDetected,
+  validationErrors,
+  showValidationErrors
 }: ConsentFormLayoutProps) => {
   const sections = [
     { id: 'patientDetails', title: '1. Patient Details', component: PatientDetailsSection },
@@ -134,6 +139,12 @@ const ConsentFormLayout = ({
           onRegionSelect={setRegionManually}
           isRegionFromDraft={isRegionFromDraft}
           isRegionDetected={isRegionDetected}
+        />
+
+        {/* Validation Errors Display */}
+        <FormValidationErrors 
+          errors={validationErrors}
+          isVisible={showValidationErrors}
         />
 
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">

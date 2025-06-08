@@ -1,68 +1,55 @@
 
 import React from 'react';
-import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import { FormData } from '../types/formTypes';
 
 interface ConsentSectionProps {
-  formData: any;
-  onInputChange: (name: string, value: string) => void;
-  onCheckboxChange?: (name: string, value: string, checked: boolean) => void;
+  formData: FormData;
+  onInputChange: (field: keyof FormData, value: string) => void;
+  onCheckboxChange: (field: keyof FormData, value: string, checked: boolean) => void;
 }
 
-const ConsentSection = ({ formData, onInputChange }: ConsentSectionProps) => {
+const ConsentSection = ({ formData, onInputChange, onCheckboxChange }: ConsentSectionProps) => {
+  console.log('ConsentSection - Current consent agreement:', formData.consentAgreement);
+
   return (
-    <>
-      <h2 className="text-xl font-semibold text-[#ef4805] mb-4">Consent</h2>
+    <div className="space-y-6 p-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Consent Agreement</h3>
       
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <p className="mb-2">
-          <a 
-            href="https://emiyxuareujqneuyewzq.supabase.co/storage/v1/object/public/email-assets//Mia%20Consent%20Form.pdf" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-[#ef4805] underline font-medium"
-          >
-            MIA Consent Form
-          </a>
-        </p>
-        <p className="text-sm text-blue-700">
-          <strong>Note:</strong> Make sure to return to this form on your browser tab after reading the document. 
-          On some devices, clicking the link may open a new window, but your progress will be saved here.
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            44. I have read and agree with terms and conditions provided in the document
-          </label>
-          <RadioGroup
-            value={formData.terms || ''}
-            onValueChange={(value) => onInputChange('terms', value)}
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Agree" id="agree" />
-              <label htmlFor="agree" className="text-sm">Agree</label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Disagree" id="disagree" />
-              <label htmlFor="disagree" className="text-sm">Disagree</label>
-            </div>
-          </RadioGroup>
+      <div className="bg-gray-50 p-4 rounded-lg">
+        <h4 className="font-medium text-gray-900 mb-3">Dental Treatment Consent</h4>
+        <div className="text-sm text-gray-700 space-y-2 mb-4">
+          <p>I understand that dentistry is not an exact science and that no guarantee has been made to me as to the outcome of the treatment.</p>
+          <p>I consent to the dental treatment as explained to me and understand the risks, benefits, and alternatives.</p>
+          <p>I authorize the dentist to perform the agreed-upon treatment and any additional procedures that may be necessary.</p>
+          <p>I understand that I am financially responsible for all services rendered on my behalf.</p>
         </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            51. Please enter your full name and surname followed by the date
-          </label>
+        
+        <div className="flex items-start space-x-3">
           <input
-            type="text"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
-            value={formData.signature || ''}
-            onChange={(e) => onInputChange('signature', e.target.value)}
+            type="checkbox"
+            id="consentAgreement"
+            checked={formData.consentAgreement || false}
+            onChange={(e) => {
+              console.log('Consent agreement changed:', e.target.checked);
+              onCheckboxChange('consentAgreement', 'true', e.target.checked);
+            }}
+            className="mt-1 h-4 w-4 text-[#ef4805] border-gray-300 rounded focus:ring-[#ef4805]"
           />
+          <label 
+            htmlFor="consentAgreement" 
+            className="text-sm text-gray-700 cursor-pointer"
+          >
+            <span className="font-medium text-red-600">* Required:</span> I have read, understood, and agree to the terms of this dental treatment consent form. I consent to the proposed treatment.
+          </label>
         </div>
+
+        {!formData.consentAgreement && (
+          <div className="mt-2 text-sm text-red-600">
+            You must agree to the consent form to proceed with treatment.
+          </div>
+        )}
       </div>
-    </>
+    </div>
   );
 };
 

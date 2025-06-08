@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Clock, Database, CheckCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -21,8 +22,16 @@ interface OfflineSummaryDialogProps {
 }
 
 const OfflineSummaryDialog = ({ isOpen, onClose, currentForm, pendingForms }: OfflineSummaryDialogProps) => {
+  const navigate = useNavigate();
+
+  const handleClose = () => {
+    console.log('OfflineSummaryDialog: Closing and navigating to home');
+    onClose();
+    navigate('/');
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-amber-600">
@@ -82,8 +91,8 @@ const OfflineSummaryDialog = ({ isOpen, onClose, currentForm, pendingForms }: Of
             </div>
           </div>
 
-          <Button onClick={onClose} className="w-full">
-            Continue
+          <Button onClick={handleClose} className="w-full">
+            Return to Start
           </Button>
         </div>
       </DialogContent>

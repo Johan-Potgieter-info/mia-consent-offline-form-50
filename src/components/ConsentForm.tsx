@@ -34,6 +34,8 @@ const ConsentForm = () => {
         setRegionManually={containerData.setRegionManually}
         isRegionFromDraft={containerData.isRegionFromDraft}
         isRegionDetected={containerData.isRegionDetected}
+        validationErrors={containerData.validationErrors}
+        showValidationErrors={containerData.showValidationErrors}
       />
 
       <ConsentFormDialogs

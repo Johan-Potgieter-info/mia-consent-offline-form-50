@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { CheckCircle, Cloud } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -19,8 +20,16 @@ interface OnlineSuccessDialogProps {
 }
 
 const OnlineSuccessDialog = ({ isOpen, onClose, formData }: OnlineSuccessDialogProps) => {
+  const navigate = useNavigate();
+
+  const handleClose = () => {
+    console.log('OnlineSuccessDialog: Closing and navigating to home');
+    onClose();
+    navigate('/');
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-green-600">
@@ -62,8 +71,8 @@ const OnlineSuccessDialog = ({ isOpen, onClose, formData }: OnlineSuccessDialogP
             </div>
           </div>
 
-          <Button onClick={onClose} className="w-full bg-green-600 hover:bg-green-700">
-            Continue
+          <Button onClick={handleClose} className="w-full bg-green-600 hover:bg-green-700">
+            Return to Start
           </Button>
         </div>
       </DialogContent>

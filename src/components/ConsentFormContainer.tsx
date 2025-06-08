@@ -13,6 +13,8 @@ export const useConsentFormContainer = () => {
   const [offlineFormData, setOfflineFormData] = useState<FormData | undefined>();
   const [onlineFormData, setOnlineFormData] = useState<FormData | undefined>();
   const [pendingForms, setPendingForms] = useState<FormData[]>([]);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [showValidationErrors, setShowValidationErrors] = useState(false);
   
   const consentFormData = useConsentForm();
   
@@ -26,11 +28,20 @@ export const useConsentFormContainer = () => {
       setOfflineFormData(formData);
       setPendingForms(pendingFormsList);
       setShowOfflineSummaryDialog(true);
+      setShowValidationErrors(false); // Hide validation errors on successful submission
     },
     onOnlineSubmission: (formData) => {
       console.log('Online submission callback triggered', { patientName: formData.patientName });
       setOnlineFormData(formData);
       setShowOnlineSuccessDialog(true);
+      setShowValidationErrors(false); // Hide validation errors on successful submission
+    },
+    onValidationErrors: (errors) => {
+      console.log('Validation errors callback triggered', { errors });
+      setValidationErrors(errors);
+      setShowValidationErrors(true);
+      // Scroll to top to show validation errors
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   });
 
@@ -52,6 +63,10 @@ export const useConsentFormContainer = () => {
         patientName: consentFormData.formData.patientName,
         consentAgreement: consentFormData.formData.consentAgreement 
       });
+      
+      // Clear previous validation errors
+      setShowValidationErrors(false);
+      setValidationErrors([]);
       
       const result = await submitFormHook(
         consentFormData.formData, 
@@ -83,6 +98,8 @@ export const useConsentFormContainer = () => {
     offlineFormData,
     onlineFormData,
     pendingForms,
+    validationErrors,
+    showValidationErrors,
     handleSave,
     handleSubmit,
     handleDiscard

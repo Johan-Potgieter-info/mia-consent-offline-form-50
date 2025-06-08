@@ -1,135 +1,142 @@
 
 import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import AndroidDatePicker from './AndroidDatePicker';
 import { FormData } from '../types/formTypes';
+import ValidatedInput from './ValidatedInput';
 
 interface PatientDetailsSectionProps {
   formData: FormData;
-  onInputChange: (name: string, value: string) => void;
+  onInputChange: (field: keyof FormData, value: string) => void;
+  onCheckboxChange: (field: keyof FormData, value: string, checked: boolean) => void;
 }
 
-const PatientDetailsSection = ({ formData, onInputChange }: PatientDetailsSectionProps) => {
-  const handleDateChange = (date: Date | undefined) => {
-    if (date) {
-      onInputChange('dateOfBirth', date.toISOString().split('T')[0]);
-    }
-  };
+const PatientDetailsSection = ({ formData, onInputChange, onCheckboxChange }: PatientDetailsSectionProps) => {
+  console.log('PatientDetailsSection - Current form data:', { 
+    patientName: formData.patientName, 
+    idNumber: formData.idNumber,
+    cellPhone: formData.cellPhone,
+    email: formData.email 
+  });
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-xl font-semibold text-gray-900">Patient Details</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="patientName" className="text-base font-medium">
-              Patient Name *
-            </Label>
-            <Input
-              id="patientName"
-              value={formData.patientName || ''}
-              onChange={(e) => onInputChange('patientName', e.target.value)}
-              className="h-12 text-base"
-              placeholder="Enter patient's full name"
-              required
-            />
-          </div>
+    <div className="space-y-6 p-6">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">Patient Details</h3>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ValidatedInput
+          label="Patient Name *"
+          type="text"
+          value={formData.patientName || ''}
+          onChange={(value) => {
+            console.log('Patient name changed:', value);
+            onInputChange('patientName', value);
+          }}
+          placeholder="Enter full name"
+          required
+        />
 
-          <div className="space-y-2">
-            <Label htmlFor="idNumber" className="text-base font-medium">
-              ID Number *
-            </Label>
-            <Input
-              id="idNumber"
-              value={formData.idNumber || ''}
-              onChange={(e) => onInputChange('idNumber', e.target.value)}
-              className="h-12 text-base"
-              placeholder="Enter ID number"
-              required
-            />
-          </div>
-        </div>
+        <ValidatedInput
+          label="ID Number *"
+          type="text"
+          value={formData.idNumber || ''}
+          onChange={(value) => {
+            console.log('ID number changed:', value);
+            onInputChange('idNumber', value);
+          }}
+          placeholder="Enter ID number"
+          required
+        />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label className="text-base font-medium">
-              Date of Birth *
-            </Label>
-            <AndroidDatePicker
-              value={formData.dateOfBirth ? new Date(formData.dateOfBirth) : undefined}
-              onChange={handleDateChange}
-              placeholder="Select date of birth"
-              className="h-12 text-base"
-            />
-          </div>
+        <ValidatedInput
+          label="Cell Phone *"
+          type="tel"
+          value={formData.cellPhone || ''}
+          onChange={(value) => {
+            console.log('Cell phone changed:', value);
+            onInputChange('cellPhone', value);
+          }}
+          placeholder="Enter cell phone number"
+          required
+        />
 
-          <div className="space-y-2">
-            <Label htmlFor="gender" className="text-base font-medium">
-              Gender
-            </Label>
-            <Select value={formData.gender || ''} onValueChange={(value) => onInputChange('gender', value)}>
-              <SelectTrigger className="h-12 text-base">
-                <SelectValue placeholder="Select gender" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-                <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        <ValidatedInput
+          label="Email Address"
+          type="email"
+          value={formData.email || ''}
+          onChange={(value) => {
+            console.log('Email changed:', value);
+            onInputChange('email', value);
+          }}
+          placeholder="Enter email address"
+        />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="phoneNumber" className="text-base font-medium">
-              Phone Number
-            </Label>
-            <Input
-              id="phoneNumber"
-              type="tel"
-              value={formData.phoneNumber || ''}
-              onChange={(e) => onInputChange('phoneNumber', e.target.value)}
-              className="h-12 text-base"
-              placeholder="Enter phone number"
-            />
-          </div>
+        <ValidatedInput
+          label="Date of Birth"
+          type="date"
+          value={formData.dateOfBirth || ''}
+          onChange={(value) => {
+            console.log('Date of birth changed:', value);
+            onInputChange('dateOfBirth', value);
+          }}
+        />
 
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-base font-medium">
-              Email Address
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email || ''}
-              onChange={(e) => onInputChange('email', e.target.value)}
-              className="h-12 text-base"
-              placeholder="Enter email address"
-            />
-          </div>
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">Gender</label>
+          <select
+            value={formData.gender || ''}
+            onChange={(e) => {
+              console.log('Gender changed:', e.target.value);
+              onInputChange('gender', e.target.value);
+            }}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+          >
+            <option value="">Select gender</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="address" className="text-base font-medium">
-            Address
-          </Label>
-          <Input
-            id="address"
-            value={formData.address || ''}
-            onChange={(e) => onInputChange('address', e.target.value)}
-            className="h-12 text-base"
-            placeholder="Enter full address"
-          />
+          <label className="block text-sm font-medium text-gray-700">Marital Status</label>
+          <select
+            value={formData.maritalStatus || ''}
+            onChange={(e) => {
+              console.log('Marital status changed:', e.target.value);
+              onInputChange('maritalStatus', e.target.value);
+            }}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+          >
+            <option value="">Select marital status</option>
+            <option value="single">Single</option>
+            <option value="married">Married</option>
+            <option value="divorced">Divorced</option>
+            <option value="widowed">Widowed</option>
+          </select>
         </div>
-      </CardContent>
-    </Card>
+
+        <ValidatedInput
+          label="Emergency Contact Name"
+          type="text"
+          value={formData.emergencyContactName || ''}
+          onChange={(value) => {
+            console.log('Emergency contact name changed:', value);
+            onInputChange('emergencyContactName', value);
+          }}
+          placeholder="Enter emergency contact name"
+        />
+
+        <ValidatedInput
+          label="Emergency Contact Number"
+          type="tel"
+          value={formData.emergencyContactNumber || ''}
+          onChange={(value) => {
+            console.log('Emergency contact number changed:', value);
+            onInputChange('emergencyContactNumber', value);
+          }}
+          placeholder="Enter emergency contact number"
+        />
+      </div>
+    </div>
   );
 };
 
