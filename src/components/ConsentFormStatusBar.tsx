@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { MapPin, AlertCircle, Save, Database, CheckCircle, Loader2, X, Cloud, HardDrive } from 'lucide-react';
+import { AlertCircle, Save, Database, CheckCircle, Loader2, X, Cloud, HardDrive } from 'lucide-react';
 import { Region } from '../utils/regionDetection';
+import RegionDropdown from './RegionDropdown';
 
 interface ConsentFormStatusBarProps {
   isOnline: boolean;
@@ -13,6 +14,9 @@ interface ConsentFormStatusBarProps {
   dbInitialized?: boolean;
   autoSaveStatus?: 'idle' | 'saving' | 'success' | 'error';
   retryCount?: number;
+  onRegionSelect?: (region: Region) => void;
+  isRegionFromDraft?: boolean;
+  isRegionDetected?: boolean;
 }
 
 const ConsentFormStatusBar = ({ 
@@ -24,7 +28,10 @@ const ConsentFormStatusBar = ({
   onSave,
   dbInitialized = true,
   autoSaveStatus = 'idle',
-  retryCount = 0
+  retryCount = 0,
+  onRegionSelect,
+  isRegionFromDraft = false,
+  isRegionDetected = false
 }: ConsentFormStatusBarProps) => {
   const getAutoSaveIndicator = () => {
     switch (autoSaveStatus) {
@@ -90,11 +97,13 @@ const ConsentFormStatusBar = ({
         
         {getStorageIndicator()}
         
-        {currentRegion && (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-            <MapPin className="w-3 h-3 mr-1" />
-            {currentRegion.code} - {currentRegion.name}
-          </span>
+        {currentRegion && onRegionSelect && (
+          <RegionDropdown
+            currentRegion={currentRegion}
+            onRegionSelect={onRegionSelect}
+            isFromDraft={isRegionFromDraft}
+            isDetected={isRegionDetected}
+          />
         )}
         
         {isDirty && autoSaveStatus !== 'saving' && (

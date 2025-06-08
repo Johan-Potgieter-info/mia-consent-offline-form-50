@@ -29,12 +29,12 @@ export const useFormInitialization = ({
     detectAndSetRegion 
   } = useRegionDetection();
 
-  // Initialize form when storage and region detection are ready
+  // Initialize form when storage is ready
   useEffect(() => {
-    if (isInitialized && regionDetectionComplete) {
+    if (isInitialized) {
       initializeForm();
     }
-  }, [isInitialized, regionDetectionComplete]);
+  }, [isInitialized]);
 
   const initializeForm = async () => {
     try {
@@ -62,7 +62,7 @@ export const useFormInitialization = ({
       if (draftParam) {
         try {
           const parsedDraft = JSON.parse(decodeURIComponent(draftParam));
-          resumeDraftHandler(parsedDraft);
+          await resumeDraftHandler(parsedDraft);
           return;
         } catch (error) {
           console.error('Failed to parse draft from URL:', error);
@@ -77,7 +77,7 @@ export const useFormInitialization = ({
       // Check for draft in location state
       const resumeDraftFromState = location.state?.resumeDraft;
       if (resumeDraftFromState) {
-        resumeDraftHandler(resumeDraftFromState);
+        await resumeDraftHandler(resumeDraftFromState);
         return;
       }
       
@@ -102,11 +102,20 @@ export const useFormInitialization = ({
     }
   };
 
-  const resumeDraftHandler = (draft: FormData) => {
+  const resumeDraftHandler = async (draft: FormData) => {
     setIsResuming(true);
     setFormData(draft);
     
-    const region = REGIONS[draft.regionCode as keyof typeof REGIONS] || REGIONS.PTA;
+    // Check if draft has region information
+    if (draft.regionCode && REGIONS[draft.regionCode as keyof typeof REGIONS]) {
+      const draftRegion = REGIONS[draft.regionCode as keyof typeof REGIONS];
+      // Override region detection with draft region
+      await detectAndSetRegion(draftRegion);
+    } else {
+      // Fallback to default region if draft doesn't have valid region
+      const region = REGIONS.PTA;
+      await detectAndSetRegion(region);
+    }
     
     toast({
       title: "Draft Resumed",

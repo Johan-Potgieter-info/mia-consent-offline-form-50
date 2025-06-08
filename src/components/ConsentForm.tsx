@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useConsentForm } from '../hooks/useConsentForm';
 import ConsentFormHeader from './ConsentFormHeader';
@@ -41,7 +40,9 @@ const ConsentForm = () => {
     autoSaveStatus,
     retryCount,
     justSaved,
-    resetJustSaved
+    resetJustSaved,
+    isRegionFromDraft,
+    isRegionDetected
   } = useConsentForm();
 
   const sections = [
@@ -132,6 +133,9 @@ const ConsentForm = () => {
           dbInitialized={dbInitialized}
           autoSaveStatus={autoSaveStatus}
           retryCount={retryCount}
+          onRegionSelect={setRegionManually}
+          isRegionFromDraft={isRegionFromDraft}
+          isRegionDetected={isRegionDetected}
         />
 
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">

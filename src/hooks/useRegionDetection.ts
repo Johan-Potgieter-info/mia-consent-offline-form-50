@@ -8,7 +8,9 @@ interface UseRegionDetectionResult {
   regionDetected: boolean;
   regionDetectionComplete: boolean;
   showManualSelector: boolean;
-  detectAndSetRegion: () => Promise<Region>;
+  isRegionFromDraft: boolean;
+  isRegionDetected: boolean;
+  detectAndSetRegion: (overrideRegion?: Region) => Promise<Region>;
   setRegionManually: (region: Region) => void;
   showRegionSelector: () => void;
   hideRegionSelector: () => void;
@@ -19,14 +21,39 @@ export const useRegionDetection = (): UseRegionDetectionResult => {
   const [regionDetected, setRegionDetected] = useState(false);
   const [regionDetectionComplete, setRegionDetectionComplete] = useState(false);
   const [showManualSelector, setShowManualSelector] = useState(false);
+  const [isRegionFromDraft, setIsRegionFromDraft] = useState(false);
+  const [isRegionDetected, setIsRegionDetected] = useState(false);
   const { toast } = useToast();
 
-  // Auto-detect region on mount
+  // Auto-detect region on mount (unless overridden)
   useEffect(() => {
-    detectAndSetRegion();
+    // Don't auto-detect if we're waiting for a draft region to be set
+    const urlParams = new URLSearchParams(window.location.search);
+    const draftParam = urlParams.get('draft');
+    
+    if (!draftParam) {
+      detectAndSetRegion();
+    }
   }, []);
 
-  const detectAndSetRegion = async (): Promise<Region> => {
+  const detectAndSetRegion = async (overrideRegion?: Region): Promise<Region> => {
+    // If override region is provided (from draft), use it directly
+    if (overrideRegion) {
+      setCurrentRegion(overrideRegion);
+      setRegionDetected(true);
+      setRegionDetectionComplete(true);
+      setShowManualSelector(false);
+      setIsRegionFromDraft(true);
+      setIsRegionDetected(false);
+      
+      toast({
+        title: "Region Loaded from Draft",
+        description: `Form will be submitted for ${overrideRegion.name} (${overrideRegion.code}) - ${overrideRegion.doctor}`,
+      });
+      
+      return overrideRegion;
+    }
+
     if (regionDetectionComplete && currentRegion) return currentRegion;
     
     try {
@@ -35,6 +62,8 @@ export const useRegionDetection = (): UseRegionDetectionResult => {
       setRegionDetected(true);
       setRegionDetectionComplete(true);
       setShowManualSelector(false);
+      setIsRegionFromDraft(false);
+      setIsRegionDetected(true);
       
       toast({
         title: "Region Detected",
@@ -50,6 +79,8 @@ export const useRegionDetection = (): UseRegionDetectionResult => {
       setRegionDetected(false);
       setRegionDetectionComplete(false);
       setShowManualSelector(true);
+      setIsRegionFromDraft(false);
+      setIsRegionDetected(false);
       
       toast({
         title: "Region Detection Failed",
@@ -67,6 +98,8 @@ export const useRegionDetection = (): UseRegionDetectionResult => {
     setRegionDetected(true);
     setRegionDetectionComplete(true);
     setShowManualSelector(false);
+    setIsRegionFromDraft(false);
+    setIsRegionDetected(false);
     
     toast({
       title: "Region Selected",
@@ -87,6 +120,8 @@ export const useRegionDetection = (): UseRegionDetectionResult => {
     regionDetected,
     regionDetectionComplete,
     showManualSelector,
+    isRegionFromDraft,
+    isRegionDetected,
     detectAndSetRegion,
     setRegionManually,
     showRegionSelector,

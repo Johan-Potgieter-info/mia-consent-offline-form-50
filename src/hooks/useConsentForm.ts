@@ -19,7 +19,9 @@ export const useConsentForm = () => {
     showManualSelector, 
     setRegionManually,
     showRegionSelector,
-    hideRegionSelector 
+    hideRegionSelector,
+    isRegionFromDraft,
+    isRegionDetected
   } = useRegionDetection();
   
   const {
@@ -67,6 +69,8 @@ export const useConsentForm = () => {
     autoSaveStatus,
     retryCount,
     justSaved,
-    resetJustSaved
+    resetJustSaved,
+    isRegionFromDraft,
+    isRegionDetected
   };
 };
