@@ -1,40 +1,72 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { FormData } from '../types/formTypes';
 
-interface UseFormDataResult {
-  formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
-  handleInputChange: (name: string, value: string) => void;
-  handleCheckboxChange: (name: string, value: string, checked: boolean) => void;
-  isDirty: boolean;
-  setIsDirty: (isDirty: boolean) => void;
-}
+const initialFormData: FormData = {
+  // Generate a consistent ID at form initialization
+  id: Date.now(),
+  patientName: '',
+  idNumber: '',
+  cellPhone: '',
+  email: '',
+  dateOfBirth: '',
+  gender: '',
+  maritalStatus: '',
+  emergencyContactName: '',
+  emergencyContactNumber: '',
+  medicalAidScheme: '',
+  medicalAidNumber: '',
+  accountHolderName: '',
+  accountHolderIdNumber: '',
+  relationshipToPatient: '',
+  paymentMethod: '',
+  allergies: '',
+  medications: '',
+  medicalConditions: '',
+  previousDentalWork: '',
+  consentAgreement: false,
+  timestamp: new Date().toISOString(),
+  regionCode: '',
+  status: 'draft'
+};
 
-export const useFormData = (): UseFormDataResult => {
-  const [formData, setFormData] = useState<FormData>({});
+export const useFormData = () => {
+  const [formData, setFormData] = useState<FormData>(initialFormData);
   const [isDirty, setIsDirty] = useState(false);
 
-  const handleInputChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleInputChange = useCallback((field: keyof FormData, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value,
+      // Preserve the original ID throughout the form lifecycle
+      id: prev.id || Date.now(),
+      lastModified: new Date().toISOString()
+    }));
     setIsDirty(true);
-  };
+  }, []);
 
-  const handleCheckboxChange = (name: string, value: string, checked: boolean) => {
-    setFormData(prev => {
-      const currentValues = (prev[name] as string[]) || [];
-      if (checked) {
-        return { ...prev, [name]: [...currentValues, value] };
-      } else {
-        return { ...prev, [name]: currentValues.filter(v => v !== value) };
-      }
-    });
+  const handleCheckboxChange = useCallback((field: keyof FormData, checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: checked,
+      // Preserve the original ID throughout the form lifecycle
+      id: prev.id || Date.now(),
+      lastModified: new Date().toISOString()
+    }));
     setIsDirty(true);
-  };
+  }, []);
 
   return {
     formData,
-    setFormData,
+    setFormData: useCallback((data: FormData) => {
+      // When setting form data (like from a draft), preserve or generate ID
+      setFormData({
+        ...data,
+        id: data.id || Date.now(),
+        lastModified: new Date().toISOString()
+      });
+      setIsDirty(false);
+    }, []),
     handleInputChange,
     handleCheckboxChange,
     isDirty,

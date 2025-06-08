@@ -7,16 +7,18 @@ import { Region } from '../utils/regionDetection';
 
 interface UseFormSubmissionProps {
   isOnline: boolean;
-  onOfflineSubmission?: (formData: FormData) => void;
+  onOfflineSubmission?: (formData: FormData, pendingForms: FormData[]) => void;
+  onOnlineSubmission?: (formData: FormData) => void;
 }
 
 export const useFormSubmission = ({ 
   isOnline,
-  onOfflineSubmission 
+  onOfflineSubmission,
+  onOnlineSubmission 
 }: UseFormSubmissionProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { saveForm, deleteForm, syncData, capabilities } = useHybridStorage();
+  const { saveForm, deleteForm, syncData, capabilities, getForms } = useHybridStorage();
 
   const submitForm = async (
     formData: FormData, 
@@ -72,13 +74,17 @@ export const useFormSubmission = ({
       
       // Handle offline vs online submission
       if (!isOnline || !capabilities.supabase) {
-        // Offline submission - show special dialog
-        onOfflineSubmission?.(finalData);
+        // Get all pending forms for the summary
+        const pendingForms = await getForms(false);
+        const allPending = pendingForms.filter(form => !form.synced && form.status === 'completed');
+        
+        // Offline submission - show special dialog with pending summary
+        onOfflineSubmission?.(finalData, allPending);
         
         // Navigate back after a delay to allow user to see the dialog
         setTimeout(() => {
           navigate('/');
-        }, 3000);
+        }, 100);
         
         return { 
           success: true,
@@ -92,15 +98,13 @@ export const useFormSubmission = ({
           console.error('Post-submission sync failed:', error);
         }
         
-        toast({
-          title: "Form Submitted Successfully",
-          description: `Form submitted and saved to cloud database for ${currentRegion?.name}!`,
-        });
-
-        // Navigate back to home after successful submission
+        // Show online success dialog
+        onOnlineSubmission?.(finalData);
+        
+        // Navigate back to home after showing dialog
         setTimeout(() => {
           navigate('/');
-        }, 2000);
+        }, 100);
         
         return { 
           success: true,

@@ -65,12 +65,14 @@ export const useFormPersistence = ({
 
   // Save button - ALWAYS saves as draft (local only, never to cloud)
   const saveForm = async (formData: FormData): Promise<string | number | undefined> => {
-    console.log('Manual save triggered - saving as DRAFT only');
+    console.log('Manual save triggered - saving as DRAFT only', { id: formData.id });
     
     const draftData = {
       ...formData,
       timestamp: new Date().toISOString(),
-      status: 'draft'
+      status: 'draft',
+      // Ensure consistent ID for updates
+      id: formData.id || Date.now()
     };
     
     if (!capabilities.indexedDB) {
@@ -78,13 +80,13 @@ export const useFormPersistence = ({
       if (fallbackSuccess) {
         toast({
           title: "Draft Saved",
-          description: "Form saved as draft to browser storage",
+          description: isOnline ? "Form saved as draft to browser storage" : "Form saved as draft locally (offline)",
           variant: "default",
         });
         setLastSaved(new Date());
         setIsDirty(false);
         setJustSaved(true);
-        return Date.now();
+        return draftData.id;
       } else {
         toast({
           title: "Save Failed",
@@ -102,10 +104,13 @@ export const useFormPersistence = ({
       setIsDirty(false);
       setJustSaved(true);
       setRetryCount(0);
+      
       toast({
         title: "Draft Saved",
-        description: "Form saved as draft locally - not submitted to cloud",
+        description: isOnline ? "Form saved as draft locally - not submitted to cloud" : "Form saved as draft locally (offline)",
       });
+      
+      console.log('Manual save completed with ID:', result?.id || result);
       return result?.id || result;
     } catch (error) {
       console.error('Manual save error:', error);
@@ -121,7 +126,7 @@ export const useFormPersistence = ({
         setLastSaved(new Date());
         setIsDirty(false);
         setJustSaved(true);
-        return Date.now();
+        return draftData.id;
       }
       
       toast({
@@ -132,8 +137,16 @@ export const useFormPersistence = ({
     }
   };
 
-  // Auto-save - also saves as draft only
+  // Auto-save - also saves as draft only, updates existing record
   const autoSave = async (formData: FormData): Promise<void> => {
+    // Don't auto-save if we don't have essential data
+    if (!formData.patientName && !formData.idNumber && !formData.cellPhone) {
+      console.log('Auto-save skipped: insufficient data to save');
+      return;
+    }
+
+    console.log('Auto-save triggered for form ID:', formData.id);
+    
     if (!capabilities.indexedDB) {
       console.log('Auto-save skipped: No IndexedDB available, trying fallback');
       const fallbackSuccess = saveToFallbackStorage({
@@ -149,29 +162,27 @@ export const useFormPersistence = ({
       }
       return;
     }
-
-    // Don't auto-save if we don't have essential data
-    if (!formData.patientName && !formData.idNumber && !formData.cellPhone) {
-      console.log('Auto-save skipped: insufficient data to save');
-      return;
-    }
     
     setAutoSaveStatus('saving');
     
     try {
       // Force save as draft to IndexedDB only (isDraft = true)
-      await saveToHybridStorage({ 
+      // Use existing ID to update the same record
+      const autoSaveData = { 
         ...formData, 
         timestamp: new Date().toISOString(),
         autoSaved: true,
-        status: 'draft'
-      }, true);
+        status: 'draft',
+        id: formData.id || Date.now() // Ensure we have an ID
+      };
+      
+      await saveToHybridStorage(autoSaveData, true);
       
       setLastSaved(new Date());
       setIsDirty(false);
       setAutoSaveStatus('success');
       setRetryCount(0);
-      console.log('Auto-saved as draft successfully');
+      console.log('Auto-saved as draft successfully with ID:', autoSaveData.id);
       
     } catch (error) {
       console.error('Auto-save failed:', error);

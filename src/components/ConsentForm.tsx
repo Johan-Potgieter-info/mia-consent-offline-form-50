@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useConsentForm } from '../hooks/useConsentForm';
 import { useFormSubmission } from '../hooks/useFormSubmission';
@@ -11,6 +10,8 @@ import BackToStartButton from './BackToStartButton';
 import SaveConfirmation from './SaveConfirmation';
 import RegionSelector from './RegionSelector';
 import OfflineSubmissionDialog from './OfflineSubmissionDialog';
+import OnlineSuccessDialog from './OnlineSuccessDialog';
+import OfflineSummaryDialog from './OfflineSummaryDialog';
 import FormSection from './FormSection';
 import PatientDetailsSection from './PatientDetailsSection';
 import AccountHolderSection from './AccountHolderSection';
@@ -23,7 +24,11 @@ const ConsentForm = () => {
   const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
   const [showOfflineDialog, setShowOfflineDialog] = useState(false);
+  const [showOnlineSuccessDialog, setShowOnlineSuccessDialog] = useState(false);
+  const [showOfflineSummaryDialog, setShowOfflineSummaryDialog] = useState(false);
   const [offlineFormData, setOfflineFormData] = useState<FormData | undefined>();
+  const [onlineFormData, setOnlineFormData] = useState<FormData | undefined>();
+  const [pendingForms, setPendingForms] = useState<FormData[]>([]);
   
   const {
     activeSection,
@@ -52,9 +57,14 @@ const ConsentForm = () => {
 
   const { submitForm: submitFormHook } = useFormSubmission({ 
     isOnline,
-    onOfflineSubmission: (formData) => {
+    onOfflineSubmission: (formData, pendingFormsList) => {
       setOfflineFormData(formData);
-      setShowOfflineDialog(true);
+      setPendingForms(pendingFormsList);
+      setShowOfflineSummaryDialog(true);
+    },
+    onOnlineSubmission: (formData) => {
+      setOnlineFormData(formData);
+      setShowOnlineSuccessDialog(true);
     }
   });
 
@@ -187,13 +197,30 @@ const ConsentForm = () => {
       <SaveConfirmation
         show={showSaveConfirmation}
         message={saveMessage}
+        isOnline={isOnline}
+        isAutoSave={false}
       />
 
-      {/* Offline Submission Dialog */}
+      {/* Legacy Offline Submission Dialog (keeping for compatibility) */}
       <OfflineSubmissionDialog
         isOpen={showOfflineDialog}
         onClose={() => setShowOfflineDialog(false)}
         formData={offlineFormData}
+      />
+
+      {/* New Online Success Dialog */}
+      <OnlineSuccessDialog
+        isOpen={showOnlineSuccessDialog}
+        onClose={() => setShowOnlineSuccessDialog(false)}
+        formData={onlineFormData}
+      />
+
+      {/* New Offline Summary Dialog */}
+      <OfflineSummaryDialog
+        isOpen={showOfflineSummaryDialog}
+        onClose={() => setShowOfflineSummaryDialog(false)}
+        currentForm={offlineFormData}
+        pendingForms={pendingForms}
       />
     </div>
   );
