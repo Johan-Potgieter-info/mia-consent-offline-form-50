@@ -2,7 +2,7 @@
 
 import { openDB, IDBPDatabase } from 'idb';
 import { FormData } from '../types/formTypes';
-import { encryptSensitiveFields } from './encryption';
+import { encryptSensitiveFields, decryptSensitiveFields } from './encryption';
 
 const DB_NAME = 'consentFormDB';
 const DB_VERSION = 2;
@@ -305,4 +305,12 @@ export const updateDraftById = async (id: number | string, formData: FormData): 
     console.error('Error updating draft:', error);
     throw error;
   }
+};
+
+/**
+ * Sync pending forms to server (placeholder for now)
+ */
+export const syncPendingForms = async (): Promise<void> => {
+  console.log('Sync pending forms called - placeholder implementation');
+  // TODO: Implement actual sync logic if needed
 };

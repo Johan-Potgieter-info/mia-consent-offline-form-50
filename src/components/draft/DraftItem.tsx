@@ -43,9 +43,16 @@ const DraftItem = ({
     onContinue();
   };
 
-  const handleCheckboxChange = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleCheckboxChange = (checked: boolean | string) => {
     onToggleSelection?.();
+  };
+
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
+  const handleRegionSelect = (region: any) => {
+    onDoctorChange(draft, region.code);
   };
 
   return (
@@ -61,7 +68,7 @@ const DraftItem = ({
             <Checkbox
               checked={isSelected}
               onCheckedChange={handleCheckboxChange}
-              onClick={handleCheckboxChange}
+              onClick={handleCheckboxClick}
               className="mt-1 h-4 w-4"
             />
           )}
@@ -100,9 +107,8 @@ const DraftItem = ({
 
         <div className="flex items-center gap-2 ml-4">
           <RegionDropdown
-            currentRegion={draft.regionCode}
-            onRegionChange={(newRegion) => onDoctorChange(draft, newRegion)}
-            size="sm"
+            currentRegion={{ code: draft.regionCode, name: draft.region || draft.regionCode }}
+            onRegionSelect={handleRegionSelect}
           />
           
           <Button
