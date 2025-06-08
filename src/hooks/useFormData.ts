@@ -45,7 +45,7 @@ export const useFormData = () => {
     setIsDirty(true);
   }, []);
 
-  const handleCheckboxChange = useCallback((field: keyof FormData, checked: boolean) => {
+  const handleCheckboxChange = useCallback((field: keyof FormData, value: string, checked: boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: checked,
