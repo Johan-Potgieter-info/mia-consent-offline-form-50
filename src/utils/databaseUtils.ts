@@ -18,13 +18,10 @@ export const testDBConnection = async (): Promise<boolean> => {
     const testDB = await initDB();
     
     // Try a simple operation to verify it's working
-    const transaction = testDB.transaction(['forms'], 'readonly');
-    const store = transaction.objectStore('forms');
+    // With idb library, we can directly count from the store
+    const count = await testDB.count('forms');
     
-    // This will throw if there are permission issues
-    const count = await store.count();
-    
-    console.log('IndexedDB connection test successful');
+    console.log('IndexedDB connection test successful, forms count:', count);
     return true;
   } catch (error) {
     console.error('IndexedDB connection test failed:', error);
