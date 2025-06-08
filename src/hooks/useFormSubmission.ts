@@ -20,53 +20,80 @@ export const useFormSubmission = ({
   const { toast } = useToast();
   const { saveForm, deleteForm, syncData, capabilities, getForms } = useHybridStorage();
 
+  const validateForm = (formData: FormData): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+
+    // Check mandatory fields
+    if (!formData.patientName?.trim()) {
+      errors.push("Patient name is required");
+    }
+    
+    if (!formData.idNumber?.trim()) {
+      errors.push("ID number is required");
+    }
+    
+    if (!formData.cellPhone?.trim()) {
+      errors.push("Cell phone number is required");
+    }
+    
+    if (!formData.consentAgreement) {
+      errors.push("You must agree to the consent form");
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  };
+
   const submitForm = async (
     formData: FormData, 
     currentRegion: Region | null, 
     isResuming: boolean
   ): Promise<FormSubmissionResult> => {
     try {
-      // Validate required fields for submission
-      if (!formData.patientName || !formData.idNumber) {
-        toast({
-          title: "Validation Error",
-          description: "Please fill in patient name and ID number before submitting.",
-          variant: "destructive",
+      console.log('Starting form submission process...');
+      
+      // Validate the form first
+      const validation = validateForm(formData);
+      if (!validation.isValid) {
+        // Show validation errors
+        validation.errors.forEach(error => {
+          toast({
+            title: "Validation Error",
+            description: error,
+            variant: "destructive",
+          });
         });
+        
         return { 
           success: false, 
-          message: "Missing required fields"
+          message: "Please fix validation errors before submitting"
         };
       }
 
-      // Additional validation for complete submission
-      if (!formData.consentAgreement) {
-        toast({
-          title: "Validation Error",
-          description: "Please agree to the consent form before submitting.",
-          variant: "destructive",
-        });
-        return { 
-          success: false, 
-          message: "Consent agreement required"
-        };
-      }
+      console.log('Form validation passed, proceeding with submission...');
 
       const finalData = { 
         ...formData, 
         timestamp: new Date().toISOString(), 
-        synced: capabilities.supabase && isOnline, // Only mark as synced if online and Supabase available
+        synced: capabilities.supabase && isOnline,
         submissionId: `${formData.regionCode || currentRegion?.code || 'UNK'}-${Date.now()}`,
-        status: 'completed' // ONLY submitted forms get 'completed' status
+        status: 'completed' as const
       };
       
-      // Save COMPLETED form (isDraft = false) - this goes to cloud if available
+      console.log('Saving completed form...', { id: finalData.id, status: finalData.status });
+      
+      // Save COMPLETED form (isDraft = false)
       const savedForm = await saveForm(finalData, false);
+      console.log('Form saved successfully:', savedForm);
       
       // Delete draft if resuming and we have an ID
       if (formData.id && isResuming) {
         try {
-          await deleteForm(formData.id, true); // Delete from drafts
+          console.log('Deleting draft form...', formData.id);
+          await deleteForm(formData.id, true);
+          console.log('Draft deleted successfully');
         } catch (error) {
           console.log('Draft deletion failed (may not exist):', error);
         }
@@ -74,37 +101,55 @@ export const useFormSubmission = ({
       
       // Handle offline vs online submission
       if (!isOnline || !capabilities.supabase) {
+        console.log('Processing offline submission...');
+        
         // Get all pending forms for the summary
         const pendingForms = await getForms(false);
         const allPending = pendingForms.filter(form => !form.synced && form.status === 'completed');
         
-        // Offline submission - show special dialog with pending summary
-        onOfflineSubmission?.(finalData, allPending);
+        console.log('Triggering offline submission dialog...', { 
+          pendingCount: allPending.length,
+          currentForm: finalData.patientName 
+        });
         
-        // Navigate back after a delay to allow user to see the dialog
+        // Trigger offline submission dialog
+        if (onOfflineSubmission) {
+          onOfflineSubmission(finalData, allPending);
+        }
+        
+        // Navigate back after a delay to allow dialog to show
         setTimeout(() => {
+          console.log('Navigating back to home...');
           navigate('/');
-        }, 100);
+        }, 500);
         
         return { 
           success: true,
           message: "Form captured offline"
         };
       } else {
+        console.log('Processing online submission...');
+        
         // Online submission - attempt sync
         try {
           await syncData();
+          console.log('Post-submission sync completed');
         } catch (error) {
           console.error('Post-submission sync failed:', error);
         }
         
+        console.log('Triggering online success dialog...');
+        
         // Show online success dialog
-        onOnlineSubmission?.(finalData);
+        if (onOnlineSubmission) {
+          onOnlineSubmission(finalData);
+        }
         
         // Navigate back to home after showing dialog
         setTimeout(() => {
+          console.log('Navigating back to home...');
           navigate('/');
-        }, 100);
+        }, 500);
         
         return { 
           success: true,

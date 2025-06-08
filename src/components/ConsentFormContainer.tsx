@@ -19,11 +19,16 @@ export const useConsentFormContainer = () => {
   const { submitForm: submitFormHook } = useFormSubmission({ 
     isOnline: consentFormData.isOnline,
     onOfflineSubmission: (formData, pendingFormsList) => {
+      console.log('Offline submission callback triggered', { 
+        patientName: formData.patientName,
+        pendingCount: pendingFormsList.length 
+      });
       setOfflineFormData(formData);
       setPendingForms(pendingFormsList);
       setShowOfflineSummaryDialog(true);
     },
     onOnlineSubmission: (formData) => {
+      console.log('Online submission callback triggered', { patientName: formData.patientName });
       setOnlineFormData(formData);
       setShowOnlineSuccessDialog(true);
     }
@@ -31,6 +36,7 @@ export const useConsentFormContainer = () => {
 
   const handleSave = async () => {
     try {
+      console.log('Manual save initiated...');
       await consentFormData.saveForm();
       setSaveMessage('Form saved successfully to ' + (consentFormData.dbInitialized ? 'cloud storage' : 'local storage'));
       setShowSaveConfirmation(true);
@@ -42,7 +48,18 @@ export const useConsentFormContainer = () => {
 
   const handleSubmit = async () => {
     try {
-      await submitFormHook(consentFormData.formData, consentFormData.currentRegion, consentFormData.isResuming);
+      console.log('Form submission initiated...', { 
+        patientName: consentFormData.formData.patientName,
+        consentAgreement: consentFormData.formData.consentAgreement 
+      });
+      
+      const result = await submitFormHook(
+        consentFormData.formData, 
+        consentFormData.currentRegion, 
+        consentFormData.isResuming
+      );
+      
+      console.log('Submission result:', result);
     } catch (error) {
       console.error('Submit failed:', error);
     }

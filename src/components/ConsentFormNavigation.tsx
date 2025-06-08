@@ -34,6 +34,7 @@ const ConsentFormNavigation = ({
 
   const handleSubmit = async () => {
     if (isSubmitting) return;
+    console.log('Submit button clicked - calling onSubmit...');
     setIsSubmitting(true);
     try {
       await onSubmit();
@@ -67,7 +68,7 @@ const ConsentFormNavigation = ({
             className="flex items-center gap-2 h-12 px-8 bg-[#ef4805] text-white text-base font-medium hover:bg-[#d63d04] transition-colors disabled:opacity-50"
           >
             <Send className="w-5 h-5" />
-            {isSubmitting ? 'Submitting...' : 'Submit to Cloud Database'}
+            {isSubmitting ? 'Submitting...' : 'Submit Form'}
           </Button>
         ) : (
           <Button
