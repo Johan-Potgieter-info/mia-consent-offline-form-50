@@ -1,15 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { Input } from './ui/input';
+import { Label } from './ui/label';
 import { validatePhoneNumber, validateEmail } from '../utils/validation';
 
 interface ValidatedInputProps {
-  type: 'phone' | 'email' | 'text';
+  type: 'phone' | 'email' | 'text' | 'tel' | 'date';
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   required?: boolean;
   className?: string;
+  label?: string;
   onValidationChange?: (isValid: boolean) => void;
 }
 
@@ -20,6 +22,7 @@ const ValidatedInput = ({
   placeholder, 
   required = false,
   className = '',
+  label,
   onValidationChange
 }: ValidatedInputProps) => {
   const [error, setError] = useState<string>('');
@@ -35,6 +38,7 @@ const ValidatedInput = ({
     let validation;
     switch (type) {
       case 'phone':
+      case 'tel':
         validation = validatePhoneNumber(inputValue);
         break;
       case 'email':
@@ -63,7 +67,7 @@ const ValidatedInput = ({
     let newValue = e.target.value;
     
     // For phone numbers, only allow digits, spaces, dashes, parentheses, and plus
-    if (type === 'phone') {
+    if (type === 'phone' || type === 'tel') {
       newValue = newValue.replace(/[^\d\s\-\(\)\+]/g, '');
     }
     
@@ -75,10 +79,18 @@ const ValidatedInput = ({
     validateInput(value);
   };
 
+  const inputType = type === 'phone' || type === 'tel' ? 'tel' : type === 'email' ? 'email' : type === 'date' ? 'date' : 'text';
+
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
+      {label && (
+        <Label htmlFor={label} className="block text-sm font-medium text-gray-700">
+          {label}
+        </Label>
+      )}
       <Input
-        type={type === 'phone' ? 'tel' : type === 'email' ? 'email' : 'text'}
+        id={label}
+        type={inputType}
         value={value}
         onChange={handleChange}
         onBlur={handleBlur}
