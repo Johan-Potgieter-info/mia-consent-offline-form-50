@@ -18,7 +18,7 @@ export const initDB = async (): Promise<IDBPDatabase<any>> => {
 
   try {
     dbInstance = await openDB(DB_NAME, DB_VERSION, {
-      upgrade(db, oldVersion) {
+      upgrade(db, oldVersion, newVersion, transaction) {
         console.log(`Upgrading database from version ${oldVersion} to ${DB_VERSION}`);
 
         if (oldVersion < 1) {
@@ -40,7 +40,8 @@ export const initDB = async (): Promise<IDBPDatabase<any>> => {
         if (oldVersion < 2) {
           // Add index for session ID in drafts store
           if (db.objectStoreNames.contains(DRAFTS_STORE)) {
-            const draftsStore = db.objectStore(DRAFTS_STORE);
+            const tx = transaction;
+            const draftsStore = tx.objectStore(DRAFTS_STORE);
             if (!draftsStore.indexNames.contains('sessionId')) {
               draftsStore.createIndex('sessionId', 'id', { unique: false });
               console.log(`Index 'sessionId' created in '${DRAFTS_STORE}'`);
