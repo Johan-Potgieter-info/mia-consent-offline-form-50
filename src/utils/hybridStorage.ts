@@ -1,9 +1,8 @@
-
 // Hybrid storage solution using Supabase as primary and IndexedDB as fallback
 
 import { FormData } from '../types/formTypes';
 import { saveFormToSupabase, updateFormInSupabase, getFormsFromSupabase, deleteFormFromSupabase, testSupabaseConnection } from './supabaseOperations';
-import { saveFormData as saveToIndexedDB, getAllDrafts, deleteDraft, getAllForms } from './indexedDB';
+import { saveFormData as saveToIndexedDB, getAllDrafts, deleteDraft, getAllForms, updateDraftById } from './indexedDB';
 import { testDBConnection } from './databaseUtils';
 
 interface StorageCapabilities {
@@ -40,7 +39,7 @@ export const initializeStorage = async (): Promise<StorageCapabilities> => {
 };
 
 /**
- * Save form data using hybrid approach (Supabase primary, IndexedDB fallback)
+ * Save or update form data using hybrid approach with deduplication
  * @param formData Form data to save
  * @param isDraft Whether this is a draft
  * @returns Promise with saved form data
@@ -49,17 +48,49 @@ export const saveFormHybrid = async (formData: FormData, isDraft: boolean = fals
   let supabaseResult = null;
   let indexedDBResult = null;
   
+  // For drafts, check if we need to update existing draft with same session ID
+  if (isDraft && formData.id) {
+    // Try to update existing draft first
+    if (storageCapabilities.supabase) {
+      try {
+        // Check if draft exists in Supabase
+        const existingForms = await getFormsFromSupabase(true);
+        const existingDraft = existingForms.find(form => form.id === formData.id);
+        
+        if (existingDraft) {
+          supabaseResult = await updateFormInSupabase(formData.id as string, formData, isDraft);
+          console.log('Updated existing draft in Supabase');
+          return supabaseResult;
+        }
+      } catch (error) {
+        console.error('Supabase update check failed:', error);
+        storageCapabilities.supabase = false;
+      }
+    }
+
+    // Fallback to IndexedDB for draft updates
+    if (storageCapabilities.indexedDB) {
+      try {
+        const existingDrafts = await getAllDrafts();
+        const existingDraft = existingDrafts.find(draft => draft.id === formData.id);
+        
+        if (existingDraft) {
+          await updateDraftById(formData.id as any, formData);
+          indexedDBResult = { ...formData };
+          console.log('Updated existing draft in IndexedDB');
+          return indexedDBResult;
+        }
+      } catch (error) {
+        console.error('IndexedDB update failed:', error);
+      }
+    }
+  }
+  
+  // If no existing draft found or not a draft, create new one
   // Try Supabase first if available
   if (storageCapabilities.supabase) {
     try {
-      if (formData.id && typeof formData.id === 'string') {
-        // Update existing form
-        supabaseResult = await updateFormInSupabase(formData.id, formData, isDraft);
-      } else {
-        // Create new form
-        supabaseResult = await saveFormToSupabase(formData, isDraft);
-      }
-      
+      supabaseResult = await saveFormToSupabase(formData, isDraft);
       console.log('Form saved to Supabase successfully');
       return supabaseResult;
     } catch (error) {
@@ -156,6 +187,29 @@ export const deleteFormHybrid = async (id: string | number, isDraft: boolean = f
 
   if (!supabaseSuccess && !indexedDBSuccess) {
     throw new Error('Failed to delete form from all storage methods');
+  }
+};
+
+/**
+ * Delete multiple forms using hybrid approach
+ * @param ids Array of form IDs
+ * @param isDraft Whether these are drafts
+ */
+export const deleteMultipleFormsHybrid = async (ids: (string | number)[], isDraft: boolean = false): Promise<void> => {
+  const results = { success: 0, failed: 0 };
+
+  for (const id of ids) {
+    try {
+      await deleteFormHybrid(id, isDraft);
+      results.success++;
+    } catch (error) {
+      console.error(`Failed to delete form ${id}:`, error);
+      results.failed++;
+    }
+  }
+
+  if (results.failed > 0) {
+    throw new Error(`Failed to delete ${results.failed} out of ${ids.length} items`);
   }
 };
 

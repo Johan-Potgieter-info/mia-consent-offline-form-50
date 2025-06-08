@@ -1,7 +1,7 @@
-
 import { useNavigate } from 'react-router-dom';
 import { useHybridStorage } from './useHybridStorage';
 import { useToast } from '@/hooks/use-toast';
+import { useFormSession } from './useFormSession';
 import { FormData, FormSubmissionResult } from '../types/formTypes';
 import { Region } from '../utils/regionDetection';
 
@@ -21,6 +21,7 @@ export const useFormSubmission = ({
   const navigate = useNavigate();
   const { toast } = useToast();
   const { saveForm, deleteForm, syncData, capabilities, getForms } = useHybridStorage();
+  const { clearSession } = useFormSession();
 
   const validateForm = (formData: FormData): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
@@ -121,6 +122,10 @@ export const useFormSubmission = ({
           console.log('Draft deletion failed (may not exist):', error);
         }
       }
+      
+      // Clear the form session since we successfully submitted
+      clearSession();
+      console.log('Form session cleared after successful submission');
       
       // Handle offline vs online submission
       if (!isOnline || !capabilities.supabase) {

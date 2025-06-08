@@ -3,6 +3,8 @@ import React from 'react';
 import { AlertCircle, FileText } from 'lucide-react';
 import { Button } from '../ui/button';
 import DraftItem from './DraftItem';
+import BulkDraftActions from './BulkDraftActions';
+import { useBulkDraftOperations } from '../../hooks/useBulkDraftOperations';
 
 interface DraftListProps {
   drafts: any[];
@@ -10,10 +12,12 @@ interface DraftListProps {
   error: string | null;
   onRetry: () => void;
   onDeleteDraft: (draftId: string, e: React.MouseEvent) => void;
+  onBulkDeleteDrafts: (draftIds: string[]) => void;
   onDoctorChange: (draft: any, newRegionCode: string) => void;
   formatDate: (timestamp: string) => string;
   getDoctorOptions: () => { code: string; name: string; doctor: string }[];
   onContinue: () => void;
+  isBulkDeleting: boolean;
 }
 
 const DraftList = ({
@@ -22,11 +26,23 @@ const DraftList = ({
   error,
   onRetry,
   onDeleteDraft,
+  onBulkDeleteDrafts,
   onDoctorChange,
   formatDate,
   getDoctorOptions,
-  onContinue
+  onContinue,
+  isBulkDeleting
 }: DraftListProps) => {
+  const {
+    selectedDrafts,
+    isSelectAll,
+    toggleDraftSelection,
+    toggleSelectAll,
+    clearSelection,
+    getSelectedCount,
+    getSelectedDrafts
+  } = useBulkDraftOperations();
+
   if (isLoading) {
     return (
       <div className="text-center py-12">
@@ -64,22 +80,48 @@ const DraftList = ({
     );
   }
 
+  const handleBulkDelete = () => {
+    const selectedIds = getSelectedDrafts();
+    onBulkDeleteDrafts(selectedIds);
+    clearSelection();
+  };
+
+  const allDraftIds = drafts.map(draft => draft.id);
+
   return (
     <div className="space-y-4">
-      <p className="text-sm text-gray-600 mb-4">
-        Found {drafts.length} unfinished form{drafts.length !== 1 ? 's' : ''}. Click on any form to continue where you left off.
-      </p>
-      {drafts.map((draft) => (
-        <DraftItem
-          key={draft.id}
-          draft={draft}
-          onDelete={onDeleteDraft}
-          onDoctorChange={onDoctorChange}
-          formatDate={formatDate}
-          getDoctorOptions={getDoctorOptions}
-          onContinue={onContinue}
-        />
-      ))}
+      <BulkDraftActions
+        totalDrafts={drafts.length}
+        selectedCount={getSelectedCount()}
+        isSelectAll={isSelectAll}
+        onToggleSelectAll={() => toggleSelectAll(allDraftIds)}
+        onBulkDelete={handleBulkDelete}
+        isBulkDeleting={isBulkDeleting}
+        onClearSelection={clearSelection}
+      />
+      
+      <div className="px-4">
+        <p className="text-sm text-gray-600 mb-4">
+          Found {drafts.length} unfinished form{drafts.length !== 1 ? 's' : ''}. Click on any form to continue where you left off.
+        </p>
+      </div>
+      
+      <div className="space-y-2">
+        {drafts.map((draft) => (
+          <DraftItem
+            key={draft.id}
+            draft={draft}
+            onDelete={onDeleteDraft}
+            onDoctorChange={onDoctorChange}
+            formatDate={formatDate}
+            getDoctorOptions={getDoctorOptions}
+            onContinue={onContinue}
+            isSelected={selectedDrafts.has(draft.id)}
+            onToggleSelection={() => toggleDraftSelection(draft.id)}
+            showCheckbox={true}
+          />
+        ))}
+      </div>
     </div>
   );
 };

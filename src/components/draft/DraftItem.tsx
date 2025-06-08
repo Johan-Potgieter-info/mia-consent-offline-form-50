@@ -1,8 +1,9 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { User, Trash2 } from 'lucide-react';
+import { Trash2, Calendar, MapPin, User2 } from 'lucide-react';
 import { Button } from '../ui/button';
+import { Checkbox } from '../ui/checkbox';
+import RegionDropdown from '../RegionDropdown';
 
 interface DraftItemProps {
   draft: any;
@@ -11,77 +12,107 @@ interface DraftItemProps {
   formatDate: (timestamp: string) => string;
   getDoctorOptions: () => { code: string; name: string; doctor: string }[];
   onContinue: () => void;
+  isSelected?: boolean;
+  onToggleSelection?: () => void;
+  showCheckbox?: boolean;
 }
 
-const DraftItem = ({ 
-  draft, 
-  onDelete, 
-  onDoctorChange, 
-  formatDate, 
+const DraftItem = ({
+  draft,
+  onDelete,
+  onDoctorChange,
+  formatDate,
   getDoctorOptions,
-  onContinue 
+  onContinue,
+  isSelected = false,
+  onToggleSelection,
+  showCheckbox = false
 }: DraftItemProps) => {
+  const handleContinue = () => {
+    const doctorOptions = getDoctorOptions();
+    const selectedOption = doctorOptions.find(option => option.code === draft.regionCode) || doctorOptions[0];
+    
+    const updatedDraft = {
+      ...draft,
+      regionCode: selectedOption.code,
+      region: selectedOption.name,
+      doctor: selectedOption.doctor
+    };
+    
+    window.location.href = `/consent-form?draft=${encodeURIComponent(JSON.stringify(updatedDraft))}`;
+    onContinue();
+  };
+
+  const handleCheckboxChange = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleSelection?.();
+  };
+
   return (
-    <div className="border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
-      <div className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 text-lg">
-              {draft.patient_name || draft.patientName || 'Unnamed Patient'}
-            </h3>
-            <div className="flex items-center space-x-4 text-sm text-gray-600 mt-1">
-              <span className="inline-flex items-center">
-                <User className="w-4 h-4 mr-1" />
-                {draft.doctor || 'Dr. Vorster'}
-              </span>
-              <span>{draft.region_code || draft.regionCode || 'PTA'}</span>
+    <div 
+      className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
+        isSelected ? 'border-[#ef4805] bg-orange-50' : 'border-gray-200 hover:border-gray-300'
+      }`}
+      onClick={handleContinue}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex items-start space-x-3 flex-1">
+          {showCheckbox && (
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={handleCheckboxChange}
+              onClick={handleCheckboxChange}
+              className="mt-1 h-4 w-4"
+            />
+          )}
+          
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2">
+              <User2 className="w-4 h-4 text-gray-500" />
+              <h3 className="font-semibold text-gray-900 truncate">
+                {draft.patientName || 'Unnamed Patient'}
+              </h3>
             </div>
-            <p className="text-xs text-gray-400 mt-2">
-              Last saved: {formatDate(draft.timestamp || draft.last_modified || draft.lastModified)}
-            </p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-              Draft
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                <span>Last saved: {formatDate(draft.lastModified || draft.timestamp)}</span>
+              </div>
+              
+              {draft.regionCode && (
+                <div className="flex items-center gap-1">
+                  <MapPin className="w-3 h-3" />
+                  <span>Region: {draft.regionCode}</span>
+                </div>
+              )}
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => onDelete(draft.id, e)}
-              className="text-red-500 hover:text-red-700 hover:bg-red-50"
-              title="Delete draft"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+
+            {(draft.idNumber || draft.cellPhone) && (
+              <div className="mt-2 text-xs text-gray-500">
+                {draft.idNumber && <span>ID: {draft.idNumber}</span>}
+                {draft.idNumber && draft.cellPhone && <span> • </span>}
+                {draft.cellPhone && <span>Phone: {draft.cellPhone}</span>}
+              </div>
+            )}
           </div>
         </div>
-        
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Link
-              to={`/consent-form?draft=${encodeURIComponent(JSON.stringify(draft))}`}
-              onClick={onContinue}
-            >
-              <Button className="bg-[#ef4805] hover:bg-[#d63d04]">
-                Continue Form
-              </Button>
-            </Link>
-            
-            <div className="text-sm text-gray-500 flex items-center">
-              <span className="mr-2">Change Doctor:</span>
-              <select
-                className="px-2 py-1 border border-gray-300 rounded text-sm"
-                value={draft.region_code || draft.regionCode || 'PTA'}
-                onChange={(e) => onDoctorChange(draft, e.target.value)}
-              >
-                {getDoctorOptions().map((option) => (
-                  <option key={option.code} value={option.code}>
-                    {option.doctor} ({option.name})
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+
+        <div className="flex items-center gap-2 ml-4">
+          <RegionDropdown
+            currentRegion={draft.regionCode}
+            onRegionChange={(newRegion) => onDoctorChange(draft, newRegion)}
+            size="sm"
+          />
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => onDelete(draft.id, e)}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
         </div>
       </div>
     </div>

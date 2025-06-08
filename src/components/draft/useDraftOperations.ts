@@ -2,11 +2,13 @@
 import { useState, useEffect } from 'react';
 import { useHybridStorage } from '../../hooks/useHybridStorage';
 import { useToast } from '@/hooks/use-toast';
+import { deleteMultipleFormsHybrid } from '../../utils/hybridStorage';
 
 export const useDraftOperations = (isOpen: boolean) => {
   const [drafts, setDrafts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   const { toast } = useToast();
   const { getForms, deleteForm, isInitialized } = useHybridStorage();
 
@@ -57,6 +59,29 @@ export const useDraftOperations = (isOpen: boolean) => {
     }
   };
 
+  const handleBulkDeleteDrafts = async (draftIds: string[]) => {
+    if (draftIds.length === 0) return;
+    
+    setIsBulkDeleting(true);
+    try {
+      await deleteMultipleFormsHybrid(draftIds, true); // true for drafts
+      toast({
+        title: "Drafts Deleted",
+        description: `Successfully deleted ${draftIds.length} draft${draftIds.length !== 1 ? 's' : ''}`,
+      });
+      await loadDrafts();
+    } catch (error) {
+      console.error('Failed to bulk delete drafts:', error);
+      toast({
+        title: "Bulk Delete Failed",
+        description: "Could not delete some drafts. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
   const formatDate = (timestamp: string) => {
     return new Date(timestamp).toLocaleDateString('en-ZA', {
       day: '2-digit',
@@ -93,8 +118,10 @@ export const useDraftOperations = (isOpen: boolean) => {
     drafts,
     isLoading,
     error,
+    isBulkDeleting,
     loadDrafts,
     handleDeleteDraft,
+    handleBulkDeleteDrafts,
     handleDoctorChange,
     formatDate,
     getDoctorOptions

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useHybridStorage } from '../useHybridStorage';
 import { useFallbackStorage } from './useFallbackStorage';
+import { useFormSession } from '../useFormSession';
 import { FormData } from '../../types/formTypes';
 
 interface UseAutoSaveProps {
@@ -22,6 +23,7 @@ export const useAutoSave = ({
   const { toast } = useToast();
   const { saveForm: saveToHybridStorage, capabilities } = useHybridStorage();
   const { saveToFallbackStorage } = useFallbackStorage();
+  const { sessionId } = useFormSession();
 
   const autoSave = async (formData: FormData): Promise<void> => {
     if (!formData.patientName && !formData.idNumber && !formData.cellPhone) {
@@ -29,13 +31,14 @@ export const useAutoSave = ({
       return;
     }
 
-    console.log('Auto-save triggered for form ID:', formData.id);
+    console.log('Auto-save triggered for session ID:', sessionId);
     
     if (!capabilities.indexedDB) {
       console.log('Auto-save skipped: No IndexedDB available, trying fallback');
       const fallbackSuccess = saveToFallbackStorage({
         ...formData,
-        status: 'draft'
+        status: 'draft',
+        id: sessionId
       });
       if (fallbackSuccess) {
         setLastSaved(new Date());
@@ -55,7 +58,8 @@ export const useAutoSave = ({
         timestamp: new Date().toISOString(),
         autoSaved: true,
         status: 'draft',
-        id: formData.id || Date.now()
+        id: sessionId, // Use persistent session ID
+        lastModified: new Date().toISOString()
       };
       
       await saveToHybridStorage(autoSaveData, true);
@@ -64,7 +68,7 @@ export const useAutoSave = ({
       setIsDirty(false);
       setAutoSaveStatus('success');
       setRetryCount(() => 0);
-      console.log('Auto-saved as draft successfully with ID:', autoSaveData.id);
+      console.log('Auto-saved as draft successfully with session ID:', sessionId);
       
     } catch (error) {
       console.error('Auto-save failed:', error);
@@ -73,7 +77,8 @@ export const useAutoSave = ({
       
       const fallbackSuccess = saveToFallbackStorage({
         ...formData,
-        status: 'draft'
+        status: 'draft',
+        id: sessionId
       });
       if (fallbackSuccess) {
         setLastSaved(new Date());
