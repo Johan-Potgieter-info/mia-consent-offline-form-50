@@ -1,3 +1,4 @@
+
 // IndexedDB operations
 
 import { openDB, IDBPDatabase } from 'idb';
@@ -44,10 +45,13 @@ export const initDB = async (): Promise<IDBPDatabase<any>> => {
 
         if (oldVersion < 2) {
           // Add index for session ID in drafts store
-          const draftsStore = db.transaction.objectStore(DRAFTS_STORE);
-          if (!draftsStore.indexNames.contains('sessionId')) {
-            draftsStore.createIndex('sessionId', 'id', { unique: false });
-            console.log(`Index 'sessionId' created in '${DRAFTS_STORE}'`);
+          if (db.objectStoreNames.contains(DRAFTS_STORE)) {
+            const tx = db.transaction;
+            const draftsStore = tx.objectStore(DRAFTS_STORE);
+            if (!draftsStore.indexNames.contains('sessionId')) {
+              draftsStore.createIndex('sessionId', 'id', { unique: false });
+              console.log(`Index 'sessionId' created in '${DRAFTS_STORE}'`);
+            }
           }
         }
       },
