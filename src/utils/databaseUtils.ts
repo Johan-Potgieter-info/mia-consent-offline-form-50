@@ -1,4 +1,3 @@
-
 // Database utility functions for testing connection and availability
 
 import { initDB } from './indexedDB';
@@ -23,13 +22,8 @@ export const testDBConnection = async (): Promise<boolean> => {
     const store = transaction.objectStore('forms');
     
     // This will throw if there are permission issues
-    await new Promise((resolve, reject) => {
-      const request = store.count();
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    });
+    const count = await store.count();
     
-    testDB.close();
     console.log('IndexedDB connection test successful');
     return true;
   } catch (error) {

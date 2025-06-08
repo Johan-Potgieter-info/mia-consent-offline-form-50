@@ -86,8 +86,6 @@ export const saveFormData = async (formData: FormData, isDraft: boolean = false)
 
   try {
     const db = await initDB();
-    const transaction = db.transaction([storeName], 'readwrite');
-    const store = transaction.objectStore(storeName);
     
     // Generate consistent ID if not present
     const id = formData.id || Date.now();
@@ -104,18 +102,8 @@ export const saveFormData = async (formData: FormData, isDraft: boolean = false)
       encrypted: true
     };
 
-    return new Promise((resolve, reject) => {
-      const request = store.put(dataToSave);
-
-      request.onsuccess = () => {
-        resolve(request.result as number);
-      };
-
-      request.onerror = (event) => {
-        console.error(`IndexedDB ${storeName} save error:`, event);
-        reject(new Error(`Failed to save to ${storeName}: ${(event.target as IDBRequest).error?.message || 'Unknown error'}`));
-      };
-    });
+    const result = await db.put(storeName, dataToSave);
+    return result as number;
   } catch (error) {
     console.error(`Error saving to ${storeName}:`, error);
     throw error;
@@ -129,32 +117,18 @@ export const saveFormData = async (formData: FormData, isDraft: boolean = false)
 export const getAllForms = async (): Promise<any[]> => {
   try {
     const db = await initDB();
-    const transaction = db.transaction([FORMS_STORE], 'readonly');
-    const store = transaction.objectStore(FORMS_STORE);
+    const forms = await db.getAll(FORMS_STORE);
     
-    return new Promise((resolve, reject) => {
-      const request = store.getAll();
-
-      request.onsuccess = () => {
-        const forms = request.result.map(form => {
-          try {
-            if (form.encrypted) {
-              return { ...form, ...decryptSensitiveFields(form) };
-            }
-            return form;
-          } catch (decryptError) {
-            console.warn('Failed to decrypt form, returning as is:', decryptError);
-            return { ...form, decryptionFailed: true };
-          }
-        });
-        
-        resolve(forms);
-      };
-
-      request.onerror = (event) => {
-        console.error('IndexedDB get all forms error:', event);
-        reject(new Error(`Failed to get forms: ${(event.target as IDBRequest).error?.message || 'Unknown error'}`));
-      };
+    return forms.map(form => {
+      try {
+        if (form.encrypted) {
+          return { ...form, ...decryptSensitiveFields(form) };
+        }
+        return form;
+      } catch (decryptError) {
+        console.warn('Failed to decrypt form, returning as is:', decryptError);
+        return { ...form, decryptionFailed: true };
+      }
     });
   } catch (error) {
     console.error('Error getting all forms:', error);
@@ -169,40 +143,28 @@ export const getAllForms = async (): Promise<any[]> => {
 export const getAllDrafts = async (): Promise<any[]> => {
   try {
     const db = await initDB();
-    const transaction = db.transaction([DRAFTS_STORE], 'readonly');
-    const store = transaction.objectStore(DRAFTS_STORE);
+    const drafts = await db.getAll(DRAFTS_STORE);
     
-    return new Promise((resolve, reject) => {
-      const request = store.getAll();
-
-      request.onsuccess = () => {
-        const drafts = request.result.map(draft => {
-          try {
-            if (draft.encrypted) {
-              return { ...draft, ...decryptSensitiveFields(draft) };
-            }
-            return draft;
-          } catch (decryptError) {
-            console.warn('Failed to decrypt draft, returning as is:', decryptError);
-            return { ...draft, decryptionFailed: true };
-          }
-        });
-        
-        // Sort drafts by lastModified (newest first)
-        drafts.sort((a, b) => {
-          const dateA = new Date(a.lastModified || a.timestamp);
-          const dateB = new Date(b.lastModified || b.timestamp);
-          return dateB.getTime() - dateA.getTime();
-        });
-        
-        resolve(drafts);
-      };
-
-      request.onerror = (event) => {
-        console.error('IndexedDB get all drafts error:', event);
-        reject(new Error(`Failed to get drafts: ${(event.target as IDBRequest).error?.message || 'Unknown error'}`));
-      };
+    const decryptedDrafts = drafts.map(draft => {
+      try {
+        if (draft.encrypted) {
+          return { ...draft, ...decryptSensitiveFields(draft) };
+        }
+        return draft;
+      } catch (decryptError) {
+        console.warn('Failed to decrypt draft, returning as is:', decryptError);
+        return { ...draft, decryptionFailed: true };
+      }
     });
+    
+    // Sort drafts by lastModified (newest first)
+    decryptedDrafts.sort((a, b) => {
+      const dateA = new Date(a.lastModified || a.timestamp);
+      const dateB = new Date(b.lastModified || b.timestamp);
+      return dateB.getTime() - dateA.getTime();
+    });
+    
+    return decryptedDrafts;
   } catch (error) {
     console.error('Error getting all drafts:', error);
     throw error;
@@ -217,33 +179,16 @@ export const getAllDrafts = async (): Promise<any[]> => {
 export const deleteDraft = async (id: number): Promise<void> => {
   try {
     const db = await initDB();
-    const transaction = db.transaction([DRAFTS_STORE], 'readwrite');
-    const store = transaction.objectStore(DRAFTS_STORE);
     
     // First check if the item exists
-    const getRequest = await new Promise<IDBRequest>((resolve, reject) => {
-      const request = store.get(id);
-      request.onsuccess = () => resolve(request);
-      request.onerror = (event) => reject(event);
-    });
+    const existingItem = await db.get(DRAFTS_STORE, id);
     
-    if (!getRequest.result) {
+    if (!existingItem) {
       throw new Error(`Item ${id} not found in drafts`);
     }
     
-    return new Promise((resolve, reject) => {
-      const request = store.delete(id);
-      
-      request.onsuccess = () => {
-        console.log(`Draft ${id} deleted`);
-        resolve();
-      };
-
-      request.onerror = (event) => {
-        console.error('IndexedDB delete draft error:', event);
-        reject(new Error(`Failed to delete draft: ${(event.target as IDBRequest).error?.message || 'Unknown error'}`));
-      };
-    });
+    await db.delete(DRAFTS_STORE, id);
+    console.log(`Draft ${id} deleted`);
   } catch (error) {
     console.error('Error deleting draft:', error);
     throw error;
@@ -259,48 +204,26 @@ export const deleteDraft = async (id: number): Promise<void> => {
 export const updateDraftById = async (id: number | string, formData: FormData): Promise<void> => {
   try {
     const db = await initDB();
-    const transaction = db.transaction([DRAFTS_STORE], 'readwrite');
-    const store = transaction.objectStore(DRAFTS_STORE);
     
     // Get existing draft first
-    const existingRequest = store.get(id);
+    const existingDraft = await db.get(DRAFTS_STORE, id);
     
-    return new Promise((resolve, reject) => {
-      existingRequest.onsuccess = () => {
-        const existingDraft = existingRequest.result;
-        if (!existingDraft) {
-          reject(new Error(`Draft with ID ${id} not found`));
-          return;
-        }
-        
-        // Encrypt sensitive data
-        const processedData = encryptSensitiveFields(formData);
-        
-        const updatedData = {
-          ...existingDraft,
-          ...processedData,
-          lastModified: new Date().toISOString(),
-          encrypted: true
-        };
-        
-        const updateRequest = store.put(updatedData);
-        
-        updateRequest.onsuccess = () => {
-          console.log(`Draft ${id} updated successfully`);
-          resolve();
-        };
-        
-        updateRequest.onerror = (event) => {
-          console.error('IndexedDB draft update error:', event);
-          reject(new Error(`Failed to update draft: ${(event.target as IDBRequest).error?.message || 'Unknown error'}`));
-        };
-      };
-      
-      existingRequest.onerror = (event) => {
-        console.error('IndexedDB draft get error:', event);
-        reject(new Error(`Failed to get existing draft: ${(event.target as IDBRequest).error?.message || 'Unknown error'}`));
-      };
-    });
+    if (!existingDraft) {
+      throw new Error(`Draft with ID ${id} not found`);
+    }
+    
+    // Encrypt sensitive data
+    const processedData = encryptSensitiveFields(formData);
+    
+    const updatedData = {
+      ...existingDraft,
+      ...processedData,
+      lastModified: new Date().toISOString(),
+      encrypted: true
+    };
+    
+    await db.put(DRAFTS_STORE, updatedData);
+    console.log(`Draft ${id} updated successfully`);
   } catch (error) {
     console.error('Error updating draft:', error);
     throw error;

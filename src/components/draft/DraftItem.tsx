@@ -55,6 +55,19 @@ const DraftItem = ({
     onDoctorChange(draft, region.code);
   };
 
+  // Get the current region with all required properties
+  const getCurrentRegion = () => {
+    const doctorOptions = getDoctorOptions();
+    const currentOption = doctorOptions.find(option => option.code === draft.regionCode) || doctorOptions[0];
+    
+    return {
+      code: draft.regionCode || currentOption?.code || 'PTA',
+      name: draft.region || currentOption?.name || 'Pretoria',
+      doctor: currentOption?.doctor || 'Dr. Unknown',
+      practiceNumber: '0123456' // Default practice number
+    };
+  };
+
   return (
     <div 
       className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
@@ -107,7 +120,7 @@ const DraftItem = ({
 
         <div className="flex items-center gap-2 ml-4">
           <RegionDropdown
-            currentRegion={{ code: draft.regionCode, name: draft.region || draft.regionCode }}
+            currentRegion={getCurrentRegion()}
             onRegionSelect={handleRegionSelect}
           />
           
