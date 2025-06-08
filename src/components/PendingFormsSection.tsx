@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Upload, Clock, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Upload, Clock, RefreshCw, AlertTriangle, Wifi } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { useHybridStorage } from '../hooks/useHybridStorage';
@@ -122,7 +122,10 @@ const PendingFormsSection = ({ onRefresh }: PendingFormsSectionProps) => {
                 </div>
                 <div className="flex items-center gap-2">
                   {!isOnline && (
-                    <AlertTriangle className="w-4 h-4 text-amber-500" title="Offline - will sync when connection restored" />
+                    <div className="flex items-center">
+                      <AlertTriangle className="w-4 h-4 text-amber-500" />
+                      <span className="sr-only">Offline - will sync when connection restored</span>
+                    </div>
                   )}
                 </div>
               </div>
