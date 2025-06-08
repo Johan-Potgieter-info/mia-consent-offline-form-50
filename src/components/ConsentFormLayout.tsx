@@ -35,7 +35,7 @@ interface ConsentFormLayoutProps {
   lastSaved: Date | null;
   formatLastSaved: () => string;
   dbInitialized: boolean;
-  autoSaveStatus: string;
+  autoSaveStatus: 'idle' | 'saving' | 'success' | 'error';
   retryCount: number;
   showManualSelector: boolean;
   setRegionManually: (region: Region) => void;
