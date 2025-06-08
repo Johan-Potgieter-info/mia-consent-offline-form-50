@@ -13,7 +13,11 @@ import { Button } from './ui/button';
 import DraftList from './draft/DraftList';
 import { useDraftOperations } from './draft/useDraftOperations';
 
-const ResumeDraftDialog = () => {
+interface ResumeDraftDialogProps {
+  onDraftsChanged?: () => void;
+}
+
+const ResumeDraftDialog = ({ onDraftsChanged }: ResumeDraftDialogProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const {
     drafts,
@@ -30,8 +34,24 @@ const ResumeDraftDialog = () => {
     setIsOpen(false);
   };
 
+  const handleDelete = async (draftId: string, e: React.MouseEvent) => {
+    await handleDeleteDraft(draftId, e);
+    // Call the callback to refresh the parent component's draft count
+    if (onDraftsChanged) {
+      onDraftsChanged();
+    }
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setIsOpen(open);
+    // Refresh drafts count when dialog closes
+    if (!open && onDraftsChanged) {
+      onDraftsChanged();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleDialogClose}>
       <DialogTrigger asChild>
         <Button 
           variant="outline" 
@@ -55,7 +75,7 @@ const ResumeDraftDialog = () => {
             isLoading={isLoading}
             error={error}
             onRetry={loadDrafts}
-            onDeleteDraft={handleDeleteDraft}
+            onDeleteDraft={handleDelete}
             onDoctorChange={handleDoctorChange}
             formatDate={formatDate}
             getDoctorOptions={getDoctorOptions}

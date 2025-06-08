@@ -20,6 +20,8 @@ interface UseFormActionsResult {
   formatLastSaved: () => string;
   autoSaveStatus: 'idle' | 'saving' | 'success' | 'error';
   retryCount: number;
+  justSaved: boolean;
+  resetJustSaved: () => void;
 }
 
 export const useFormActions = ({ 
@@ -36,7 +38,9 @@ export const useFormActions = ({
     autoSave, 
     formatLastSaved,
     autoSaveStatus,
-    retryCount
+    retryCount,
+    justSaved,
+    resetJustSaved
   } = useFormPersistence({ isOnline });
   const { submitForm: submitFormSubmission } = useFormSubmission({ isOnline });
 
@@ -110,6 +114,8 @@ export const useFormActions = ({
     lastSaved,
     formatLastSaved,
     autoSaveStatus,
-    retryCount
+    retryCount,
+    justSaved,
+    resetJustSaved
   };
 };

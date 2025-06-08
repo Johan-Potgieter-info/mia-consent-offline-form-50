@@ -17,6 +17,8 @@ interface UseFormPersistenceResult {
   formatLastSaved: () => string;
   autoSaveStatus: 'idle' | 'saving' | 'success' | 'error';
   retryCount: number;
+  justSaved: boolean;
+  resetJustSaved: () => void;
 }
 
 export const useFormPersistence = ({ 
@@ -26,8 +28,13 @@ export const useFormPersistence = ({
   const [isDirty, setIsDirty] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [retryCount, setRetryCount] = useState(0);
+  const [justSaved, setJustSaved] = useState(false);
   const { toast } = useToast();
   const { saveForm: saveToHybridStorage, capabilities } = useHybridStorage();
+
+  const resetJustSaved = () => {
+    setJustSaved(false);
+  };
 
   const saveToFallbackStorage = (formData: FormData) => {
     try {
@@ -76,6 +83,7 @@ export const useFormPersistence = ({
         });
         setLastSaved(new Date());
         setIsDirty(false);
+        setJustSaved(true);
         return Date.now();
       } else {
         toast({
@@ -92,6 +100,7 @@ export const useFormPersistence = ({
       const result = await saveToHybridStorage(draftData, true);
       setLastSaved(new Date());
       setIsDirty(false);
+      setJustSaved(true);
       setRetryCount(0);
       toast({
         title: "Draft Saved",
@@ -111,6 +120,7 @@ export const useFormPersistence = ({
         });
         setLastSaved(new Date());
         setIsDirty(false);
+        setJustSaved(true);
         return Date.now();
       }
       
@@ -211,5 +221,7 @@ export const useFormPersistence = ({
     formatLastSaved,
     autoSaveStatus,
     retryCount,
+    justSaved,
+    resetJustSaved,
   };
 };

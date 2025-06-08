@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, MapPin, Wifi, WifiOff, RefreshCw } from 'lucide-react';
@@ -14,6 +15,7 @@ const Index = () => {
   const navigate = useNavigate();
   const [drafts, setDrafts] = useState<FormData[]>([]);
   const [isLoadingDrafts, setIsLoadingDrafts] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   
   const { isOnline } = useConnectivity();
   const { 
@@ -33,7 +35,7 @@ const Index = () => {
     if (isInitialized) {
       loadDrafts();
     }
-  }, [isInitialized]);
+  }, [isInitialized, refreshKey]);
 
   const loadDrafts = async () => {
     if (!isInitialized) return;
@@ -49,6 +51,10 @@ const Index = () => {
     } finally {
       setIsLoadingDrafts(false);
     }
+  };
+
+  const refreshDrafts = () => {
+    setRefreshKey(prev => prev + 1);
   };
 
   const handleStartNewForm = async () => {
@@ -189,7 +195,7 @@ const Index = () => {
             </CardHeader>
             <CardContent>
               <div className="w-full h-14 flex items-center">
-                <ResumeDraftDialog />
+                <ResumeDraftDialog onDraftsChanged={refreshDrafts} />
               </div>
             </CardContent>
           </Card>

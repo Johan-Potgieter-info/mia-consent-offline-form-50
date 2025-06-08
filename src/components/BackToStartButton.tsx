@@ -17,16 +17,32 @@ import { Button } from '@/components/ui/button';
 
 interface BackToStartButtonProps {
   isDirty: boolean;
+  justSaved: boolean;
   onSave: () => Promise<void>;
   onDiscard: () => void;
+  onResetJustSaved: () => void;
 }
 
-const BackToStartButton = ({ isDirty, onSave, onDiscard }: BackToStartButtonProps) => {
+const BackToStartButton = ({ 
+  isDirty, 
+  justSaved, 
+  onSave, 
+  onDiscard, 
+  onResetJustSaved 
+}: BackToStartButtonProps) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleBackToStart = () => {
+    // If form was just saved, go directly to start without prompting
+    if (justSaved) {
+      onResetJustSaved();
+      navigate('/');
+      return;
+    }
+
+    // If form has unsaved changes, show save dialog
     if (isDirty) {
       setIsOpen(true);
     } else {
