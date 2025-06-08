@@ -2,7 +2,7 @@
 
 import { FormData } from '../types/formTypes';
 import { saveFormToSupabase, updateFormInSupabase, getFormsFromSupabase, deleteFormFromSupabase, testSupabaseConnection } from './supabaseOperations';
-import { saveFormData as saveToIndexedDB, getAllDrafts, deleteDraft, getAllForms, updateDraftById } from './indexedDB';
+import { saveDraftData, getAllDrafts, deleteDraft, getAllForms, updateDraftById, saveFormData } from './indexedDB';
 import { testDBConnection } from './databaseUtils';
 
 interface StorageCapabilities {
@@ -102,7 +102,7 @@ export const saveFormHybrid = async (formData: FormData, isDraft: boolean = fals
   // Fallback to IndexedDB
   if (storageCapabilities.indexedDB) {
     try {
-      const id = await saveToIndexedDB(formData, isDraft);
+      const id = isDraft ? await saveDraftData(formData) : await saveFormData(formData);
       indexedDBResult = { ...formData, id };
       console.log('Form saved to IndexedDB as fallback');
       return indexedDBResult;
