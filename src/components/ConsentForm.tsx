@@ -39,7 +39,9 @@ const ConsentForm = () => {
     formatLastSaved,
     dbInitialized,
     autoSaveStatus,
-    retryCount
+    retryCount,
+    justSaved,
+    resetJustSaved
   } = useConsentForm();
 
   const sections = [
@@ -101,8 +103,10 @@ const ConsentForm = () => {
         <div className="mb-6">
           <BackToStartButton
             isDirty={isDirty}
+            justSaved={justSaved}
             onSave={handleSave}
             onDiscard={handleDiscard}
+            onResetJustSaved={resetJustSaved}
           />
         </div>
 

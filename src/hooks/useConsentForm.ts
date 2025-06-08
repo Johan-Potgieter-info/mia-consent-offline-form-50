@@ -39,7 +39,9 @@ export const useConsentForm = () => {
     lastSaved,
     formatLastSaved,
     autoSaveStatus,
-    retryCount
+    retryCount,
+    justSaved,
+    resetJustSaved
   } = useFormActions({ formData, isDirty, setIsDirty, isOnline });
 
   return {
@@ -63,6 +65,8 @@ export const useConsentForm = () => {
     formatLastSaved,
     dbInitialized: capabilities.supabase || capabilities.indexedDB,
     autoSaveStatus,
-    retryCount
+    retryCount,
+    justSaved,
+    resetJustSaved
   };
 };
