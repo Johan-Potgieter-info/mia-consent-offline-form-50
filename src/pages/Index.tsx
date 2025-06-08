@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, MapPin, Wifi, WifiOff, RefreshCw } from 'lucide-react';
@@ -8,6 +9,7 @@ import { useRegionDetection } from '../hooks/useRegionDetection';
 import { useHybridStorage } from '../hooks/useHybridStorage';
 import ResumeDraftDialog from '../components/ResumeDraftDialog';
 import RegionSelector from '../components/RegionSelector';
+import PendingFormsSection from '../components/PendingFormsSection';
 import { FormData } from '../types/formTypes';
 
 const Index = () => {
@@ -144,6 +146,9 @@ const Index = () => {
           currentRegion={currentRegion}
           isVisible={showManualSelector}
         />
+
+        {/* Pending Forms Section */}
+        <PendingFormsSection onRefresh={refreshDrafts} />
 
         {/* Show draft count if we have drafts */}
         {drafts.length > 0 && (

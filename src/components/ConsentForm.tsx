@@ -1,5 +1,7 @@
+
 import React, { useState } from 'react';
 import { useConsentForm } from '../hooks/useConsentForm';
+import { useFormSubmission } from '../hooks/useFormSubmission';
 import ConsentFormHeader from './ConsentFormHeader';
 import ConsentFormProgress from './ConsentFormProgress';
 import ConsentFormStatusBar from './ConsentFormStatusBar';
@@ -8,16 +10,20 @@ import ConsentFormNavigation from './ConsentFormNavigation';
 import BackToStartButton from './BackToStartButton';
 import SaveConfirmation from './SaveConfirmation';
 import RegionSelector from './RegionSelector';
+import OfflineSubmissionDialog from './OfflineSubmissionDialog';
 import FormSection from './FormSection';
 import PatientDetailsSection from './PatientDetailsSection';
 import AccountHolderSection from './AccountHolderSection';
 import PaymentEmergencySection from './PaymentEmergencySection';
 import MedicalHistorySection from './MedicalHistorySection';
 import ConsentSection from './ConsentSection';
+import { FormData } from '../types/formTypes';
 
 const ConsentForm = () => {
   const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
+  const [showOfflineDialog, setShowOfflineDialog] = useState(false);
+  const [offlineFormData, setOfflineFormData] = useState<FormData | undefined>();
   
   const {
     activeSection,
@@ -26,7 +32,6 @@ const ConsentForm = () => {
     handleInputChange,
     handleCheckboxChange,
     saveForm,
-    submitForm,
     isOnline,
     currentRegion,
     regionDetected,
@@ -44,6 +49,14 @@ const ConsentForm = () => {
     isRegionFromDraft,
     isRegionDetected
   } = useConsentForm();
+
+  const { submitForm: submitFormHook } = useFormSubmission({ 
+    isOnline,
+    onOfflineSubmission: (formData) => {
+      setOfflineFormData(formData);
+      setShowOfflineDialog(true);
+    }
+  });
 
   const sections = [
     { id: 'patientDetails', title: '1. Patient Details', component: PatientDetailsSection },
@@ -66,7 +79,7 @@ const ConsentForm = () => {
 
   const handleSubmit = async () => {
     try {
-      await submitForm();
+      await submitFormHook(formData, currentRegion, isResuming);
     } catch (error) {
       console.error('Submit failed:', error);
     }
@@ -174,6 +187,13 @@ const ConsentForm = () => {
       <SaveConfirmation
         show={showSaveConfirmation}
         message={saveMessage}
+      />
+
+      {/* Offline Submission Dialog */}
+      <OfflineSubmissionDialog
+        isOpen={showOfflineDialog}
+        onClose={() => setShowOfflineDialog(false)}
+        formData={offlineFormData}
       />
     </div>
   );

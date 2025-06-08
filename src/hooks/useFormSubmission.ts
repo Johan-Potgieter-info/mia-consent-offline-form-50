@@ -7,10 +7,12 @@ import { Region } from '../utils/regionDetection';
 
 interface UseFormSubmissionProps {
   isOnline: boolean;
+  onOfflineSubmission?: (formData: FormData) => void;
 }
 
 export const useFormSubmission = ({ 
-  isOnline 
+  isOnline,
+  onOfflineSubmission 
 }: UseFormSubmissionProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -51,8 +53,8 @@ export const useFormSubmission = ({
       const finalData = { 
         ...formData, 
         timestamp: new Date().toISOString(), 
-        synced: capabilities.supabase, // Mark as synced if saved to Supabase
-        submissionId: `${formData.regionCode}-${Date.now()}`,
+        synced: capabilities.supabase && isOnline, // Only mark as synced if online and Supabase available
+        submissionId: `${formData.regionCode || currentRegion?.code || 'UNK'}-${Date.now()}`,
         status: 'completed' // ONLY submitted forms get 'completed' status
       };
       
@@ -68,31 +70,43 @@ export const useFormSubmission = ({
         }
       }
       
-      // Attempt sync if online and we have Supabase capability
-      if (isOnline && capabilities.supabase) {
+      // Handle offline vs online submission
+      if (!isOnline || !capabilities.supabase) {
+        // Offline submission - show special dialog
+        onOfflineSubmission?.(finalData);
+        
+        // Navigate back after a delay to allow user to see the dialog
+        setTimeout(() => {
+          navigate('/');
+        }, 3000);
+        
+        return { 
+          success: true,
+          message: "Form captured offline"
+        };
+      } else {
+        // Online submission - attempt sync
         try {
           await syncData();
         } catch (error) {
           console.error('Post-submission sync failed:', error);
         }
-      }
-      
-      toast({
-        title: "Form Submitted Successfully",
-        description: capabilities.supabase ? 
-          `Form submitted and saved to cloud database for ${currentRegion?.name}!` : 
-          "Form completed and saved locally. Will sync to cloud when online.",
-      });
+        
+        toast({
+          title: "Form Submitted Successfully",
+          description: `Form submitted and saved to cloud database for ${currentRegion?.name}!`,
+        });
 
-      // Navigate back to home after successful submission
-      setTimeout(() => {
-        navigate('/');
-      }, 2000);
-      
-      return { 
-        success: true,
-        message: "Form submitted successfully"
-      };
+        // Navigate back to home after successful submission
+        setTimeout(() => {
+          navigate('/');
+        }, 2000);
+        
+        return { 
+          success: true,
+          message: "Form submitted successfully"
+        };
+      }
     } catch (error) {
       console.error('Form submission error:', error);
       toast({
