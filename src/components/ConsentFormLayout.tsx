@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ConsentFormHeader from './ConsentFormHeader';
 import ConsentFormProgress from './ConsentFormProgress';
@@ -97,7 +98,7 @@ const ConsentFormLayout = ({
 
     const SectionComponent = section.component;
     
-    // Handle PatientDetailsSection with different props
+    // PatientDetailsSection uses different props than other sections
     if (section.id === 'patientDetails') {
       return (
         <SectionComponent
@@ -108,7 +109,7 @@ const ConsentFormLayout = ({
       );
     }
     
-    // Other sections use the original props
+    // All other sections use the standard props
     return (
       <SectionComponent
         formData={formData}
