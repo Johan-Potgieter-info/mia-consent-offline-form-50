@@ -71,14 +71,6 @@ const PatientDetailsSection = ({ formData, updateFormData, validationErrors }: P
         </div>
 
         <ValidatedInput
-          type="text"
-          label="Age"
-          value={formData.age?.toString() || ''}
-          onChange={(value) => updateFormData({ age: value ? parseInt(value) : undefined })}
-          placeholder="Enter age"
-        />
-
-        <ValidatedInput
           type="date"
           label="Date of Birth"
           value={formData.birthDate || ''}

@@ -1,3 +1,4 @@
+
 import { useNavigate } from 'react-router-dom';
 import { useHybridStorage } from './useHybridStorage';
 import { useToast } from '@/hooks/use-toast';
@@ -70,7 +71,9 @@ export const useFormSubmission = ({
           idNumber: formData.idNumber,
           cellPhone: formData.cellPhone,
           consentAgreement: formData.consentAgreement
-        }
+        },
+        isResuming,
+        draftId: formData.id
       });
       
       // Validate the form first
@@ -112,14 +115,36 @@ export const useFormSubmission = ({
       const savedForm = await saveForm(finalData, false);
       console.log('Form saved successfully:', savedForm);
       
-      // Delete draft if resuming and we have an ID
+      // IMPORTANT: Delete the draft IMMEDIATELY after successful completion
       if (formData.id && isResuming) {
         try {
-          console.log('Deleting draft form...', formData.id);
-          await deleteForm(formData.id, true);
-          console.log('Draft deleted successfully');
+          console.log('Deleting draft form after successful submission...', formData.id);
+          await deleteForm(formData.id, true); // true = isDraft
+          console.log('Draft deleted successfully after submission');
         } catch (error) {
-          console.log('Draft deletion failed (may not exist):', error);
+          console.error('Draft deletion failed after submission (may not exist):', error);
+        }
+      }
+      
+      // Also try to delete any draft with the same session ID to ensure cleanup
+      if (formData.id) {
+        try {
+          const allDrafts = await getForms(true);
+          const matchingDrafts = allDrafts.filter(draft => 
+            draft.id === formData.id || 
+            (draft.patientName === formData.patientName && draft.idNumber === formData.idNumber)
+          );
+          
+          for (const draft of matchingDrafts) {
+            try {
+              console.log('Cleaning up related draft:', draft.id);
+              await deleteForm(draft.id, true);
+            } catch (cleanupError) {
+              console.error('Cleanup error for draft:', draft.id, cleanupError);
+            }
+          }
+        } catch (error) {
+          console.error('Error during draft cleanup:', error);
         }
       }
       
