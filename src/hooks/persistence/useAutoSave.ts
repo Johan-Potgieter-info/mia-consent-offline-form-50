@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useHybridStorage } from '../useHybridStorage';
 import { useFallbackStorage } from './useFallbackStorage';
@@ -24,8 +24,18 @@ export const useAutoSave = ({
   const { saveForm: saveToHybridStorage, capabilities } = useHybridStorage();
   const { saveToFallbackStorage } = useFallbackStorage();
   const { sessionId } = useFormSession();
+  
+  // Prevent concurrent auto-saves
+  const isAutoSavingRef = useRef(false);
 
   const autoSave = async (formData: FormData): Promise<void> => {
+    // Prevent concurrent auto-saves
+    if (isAutoSavingRef.current) {
+      console.log('Auto-save already in progress, skipping');
+      return;
+    }
+
+    // Check for minimum data to save
     if (!formData.patientName && !formData.idNumber && !formData.cellPhone) {
       console.log('Auto-save skipped: insufficient data to save');
       return;
@@ -50,6 +60,7 @@ export const useAutoSave = ({
       return;
     }
     
+    isAutoSavingRef.current = true;
     setAutoSaveStatus('saving');
     
     try {
@@ -58,7 +69,7 @@ export const useAutoSave = ({
         timestamp: new Date().toISOString(),
         autoSaved: true,
         status: 'draft',
-        id: sessionId, // Use persistent session ID
+        id: sessionId,
         lastModified: new Date().toISOString()
       };
       
@@ -97,6 +108,8 @@ export const useAutoSave = ({
           });
         }
       }
+    } finally {
+      isAutoSavingRef.current = false;
     }
   };
 

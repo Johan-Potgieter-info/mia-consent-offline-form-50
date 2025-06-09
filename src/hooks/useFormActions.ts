@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useFormPersistence } from './useFormPersistence';
 import { useFormSubmission } from './useFormSubmission';
 import { useRegionDetection } from './useRegionDetection';
@@ -44,24 +44,53 @@ export const useFormActions = ({
   } = useFormPersistence({ isOnline });
   const { submitForm: submitFormSubmission } = useFormSubmission({ isOnline });
 
-  // Enhanced auto-save with better error handling - SAVES AS DRAFT ONLY
-  useEffect(() => {
-    if (!isInitialized) return;
+  // Refs to prevent excessive auto-saves on mobile
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastAutoSaveDataRef = useRef<string>('');
+  const isAutoSavingRef = useRef(false);
 
-    const autoSaveInterval = setInterval(() => {
-      if (isDirty && Object.keys(formData).length > 0) {
+  // Enhanced auto-save with better mobile optimization
+  useEffect(() => {
+    if (!isInitialized || !isDirty || Object.keys(formData).length === 0) return;
+
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Check if form data actually changed to prevent duplicate saves
+    const currentDataString = JSON.stringify(formData);
+    if (currentDataString === lastAutoSaveDataRef.current || isAutoSavingRef.current) {
+      return;
+    }
+
+    // Set a longer delay for mobile to prevent excessive saves
+    const autoSaveDelay = 45000; // 45 seconds instead of 30
+
+    autoSaveTimeoutRef.current = setTimeout(async () => {
+      if (isDirty && !isAutoSavingRef.current) {
         console.log('Auto-save triggered - saving as DRAFT', { 
           capabilities, 
           isDirty, 
           hasData: Object.keys(formData).length > 0,
           autoSaveStatus 
         });
-        autoSave(formData); // This saves as draft only
+        
+        isAutoSavingRef.current = true;
+        lastAutoSaveDataRef.current = currentDataString;
+        
+        try {
+          await autoSave(formData);
+        } catch (error) {
+          console.error('Auto-save failed:', error);
+        } finally {
+          isAutoSavingRef.current = false;
+        }
       }
-    }, 30000); // Auto-save every 30 seconds
+    }, autoSaveDelay);
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (isDirty) {
+      if (isDirty && !isAutoSavingRef.current) {
         // Try emergency save as draft
         if (capabilities.indexedDB || window.localStorage) {
           try {
@@ -91,15 +120,23 @@ export const useFormActions = ({
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      clearInterval(autoSaveInterval);
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
     };
   }, [isDirty, formData, capabilities, autoSave, autoSaveStatus, isInitialized]);
 
   // Save button handler - ALWAYS saves as draft
   const handleSaveForm = async () => {
-    const savedId = await savePersistence(formData); // This saves as draft only
+    if (isAutoSavingRef.current) {
+      console.log('Manual save skipped - auto-save in progress');
+      return;
+    }
+    
+    const savedId = await savePersistence(formData);
     if (savedId) {
       console.log('Form saved as draft with ID:', savedId);
+      lastAutoSaveDataRef.current = JSON.stringify(formData);
     }
   };
 

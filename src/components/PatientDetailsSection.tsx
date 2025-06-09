@@ -5,89 +5,63 @@ import ValidatedInput from './ValidatedInput';
 
 interface PatientDetailsSectionProps {
   formData: FormData;
-  onInputChange: (field: keyof FormData, value: string) => void;
-  onCheckboxChange: (field: keyof FormData, value: string, checked: boolean) => void;
+  updateFormData: (updates: Partial<FormData>) => void;
+  validationErrors: string[];
 }
 
-const PatientDetailsSection = ({ formData, onInputChange, onCheckboxChange }: PatientDetailsSectionProps) => {
-  console.log('PatientDetailsSection - Current form data:', { 
-    patientName: formData.patientName, 
-    idNumber: formData.idNumber,
-    cellPhone: formData.cellPhone,
-    email: formData.email 
-  });
+const PatientDetailsSection = ({ formData, updateFormData, validationErrors }: PatientDetailsSectionProps) => {
+  const hasError = (field: string) => {
+    return validationErrors.some(error => error.toLowerCase().includes(field.toLowerCase()));
+  };
 
   return (
-    <div className="space-y-6 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Patient Details</h3>
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold text-gray-900 border-b pb-2">Patient Details</h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ValidatedInput
-          label="Patient Name *"
-          type="text"
+          label="Patient Name"
           value={formData.patientName || ''}
-          onChange={(value) => {
-            console.log('Patient name changed:', value);
-            onInputChange('patientName', value);
-          }}
+          onChange={(value) => updateFormData({ patientName: value })}
           placeholder="Enter full name"
           required
+          hasError={hasError('patient name')}
         />
 
         <ValidatedInput
-          label="ID Number *"
-          type="text"
+          label="ID Number"
           value={formData.idNumber || ''}
-          onChange={(value) => {
-            console.log('ID number changed:', value);
-            onInputChange('idNumber', value);
-          }}
+          onChange={(value) => updateFormData({ idNumber: value })}
           placeholder="Enter ID number"
           required
+          hasError={hasError('id number')}
         />
 
-        <ValidatedInput
-          label="Cell Phone *"
-          type="tel"
-          value={formData.cellPhone || ''}
-          onChange={(value) => {
-            console.log('Cell phone changed:', value);
-            onInputChange('cellPhone', value);
-          }}
-          placeholder="Enter cell phone number"
-          required
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Marital Status
+          </label>
+          <select
+            value={formData.maritalStatus || ''}
+            onChange={(e) => updateFormData({ maritalStatus: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Select status</option>
+            <option value="single">Single</option>
+            <option value="married">Married</option>
+            <option value="divorced">Divorced</option>
+            <option value="widowed">Widowed</option>
+          </select>
+        </div>
 
-        <ValidatedInput
-          label="Email Address"
-          type="email"
-          value={formData.email || ''}
-          onChange={(value) => {
-            console.log('Email changed:', value);
-            onInputChange('email', value);
-          }}
-          placeholder="Enter email address"
-        />
-
-        <ValidatedInput
-          label="Date of Birth"
-          type="date"
-          value={formData.dateOfBirth || ''}
-          onChange={(value) => {
-            console.log('Date of birth changed:', value);
-            onInputChange('dateOfBirth', value);
-          }}
-        />
-
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Gender</label>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Gender
+          </label>
           <select
             value={formData.gender || ''}
-            onChange={(e) => {
-              console.log('Gender changed:', e.target.value);
-              onInputChange('gender', e.target.value);
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
+            onChange={(e) => updateFormData({ gender: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Select gender</option>
             <option value="male">Male</option>
@@ -96,44 +70,66 @@ const PatientDetailsSection = ({ formData, onInputChange, onCheckboxChange }: Pa
           </select>
         </div>
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">Marital Status</label>
-          <select
-            value={formData.maritalStatus || ''}
-            onChange={(e) => {
-              console.log('Marital status changed:', e.target.value);
-              onInputChange('maritalStatus', e.target.value);
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ef4805] focus:border-transparent"
-          >
-            <option value="">Select marital status</option>
-            <option value="single">Single</option>
-            <option value="married">Married</option>
-            <option value="divorced">Divorced</option>
-            <option value="widowed">Widowed</option>
-          </select>
-        </div>
-
         <ValidatedInput
-          label="Emergency Contact Name"
-          type="text"
-          value={formData.emergencyContactName || ''}
-          onChange={(value) => {
-            console.log('Emergency contact name changed:', value);
-            onInputChange('emergencyContactName', value);
-          }}
-          placeholder="Enter emergency contact name"
+          label="Age"
+          type="number"
+          value={formData.age?.toString() || ''}
+          onChange={(value) => updateFormData({ age: value ? parseInt(value) : undefined })}
+          placeholder="Enter age"
         />
 
         <ValidatedInput
-          label="Emergency Contact Number"
-          type="tel"
-          value={formData.emergencyContactNumber || ''}
-          onChange={(value) => {
-            console.log('Emergency contact number changed:', value);
-            onInputChange('emergencyContactNumber', value);
-          }}
-          placeholder="Enter emergency contact number"
+          label="Date of Birth"
+          type="date"
+          value={formData.birthDate || ''}
+          onChange={(value) => updateFormData({ birthDate: value })}
+        />
+
+        <ValidatedInput
+          label="Employer/School"
+          value={formData.employerSchool || ''}
+          onChange={(value) => updateFormData({ employerSchool: value })}
+          placeholder="Enter employer or school name"
+        />
+
+        <ValidatedInput
+          label="Occupation/Grade"
+          value={formData.occupationGrade || ''}
+          onChange={(value) => updateFormData({ occupationGrade: value })}
+          placeholder="Enter occupation or grade"
+        />
+
+        <ValidatedInput
+          label="Cell Phone"
+          value={formData.cellPhone || ''}
+          onChange={(value) => updateFormData({ cellPhone: value })}
+          placeholder="Enter cell phone number"
+          required
+          hasError={hasError('cell phone')}
+        />
+
+        <ValidatedInput
+          label="Email"
+          type="email"
+          value={formData.email || ''}
+          onChange={(value) => updateFormData({ email: value })}
+          placeholder="Enter email address"
+        />
+
+        <div className="md:col-span-2">
+          <ValidatedInput
+            label="Address"
+            value={formData.address || ''}
+            onChange={(value) => updateFormData({ address: value })}
+            placeholder="Enter full address"
+          />
+        </div>
+
+        <ValidatedInput
+          label="Postal Code"
+          value={formData.postalCode || ''}
+          onChange={(value) => updateFormData({ postalCode: value })}
+          placeholder="Enter postal code"
         />
       </div>
     </div>
