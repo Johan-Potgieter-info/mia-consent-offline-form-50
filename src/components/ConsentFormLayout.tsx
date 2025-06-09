@@ -7,15 +7,11 @@ import ConsentFormContent from './ConsentFormContent';
 import ConsentFormNavigation from './ConsentFormNavigation';
 import BackToStartButton from './BackToStartButton';
 import RegionSelector from './RegionSelector';
-import FormSection from './FormSection';
 import FormValidationErrors from './FormValidationErrors';
-import PatientDetailsSection from './PatientDetailsSection';
-import AccountHolderSection from './AccountHolderSection';
-import PaymentEmergencySection from './PaymentEmergencySection';
-import MedicalHistorySection from './MedicalHistorySection';
-import ConsentSection from './ConsentSection';
+import FormSectionsContainer from './FormSectionsContainer';
 import { FormData } from '../types/formTypes';
 import { Region } from '../utils/regionDetection';
+import { useFormSections } from '../hooks/useFormSections';
 
 interface ConsentFormLayoutProps {
   currentRegion: Region | null;
@@ -74,50 +70,7 @@ const ConsentFormLayout = ({
   validationErrors,
   showValidationErrors
 }: ConsentFormLayoutProps) => {
-  // Helper function to update form data
-  const updateFormData = (updates: Partial<FormData>) => {
-    Object.keys(updates).forEach(key => {
-      const value = updates[key as keyof FormData];
-      if (typeof value === 'string') {
-        handleInputChange(key as keyof FormData, value);
-      }
-    });
-  };
-
-  const sections = [
-    { id: 'patientDetails', title: '1. Patient Details', component: PatientDetailsSection },
-    { id: 'accountHolder', title: '2. Account Holder Details', component: AccountHolderSection },
-    { id: 'paymentEmergency', title: '3. Payment and Emergency Contact', component: PaymentEmergencySection },
-    { id: 'medicalHistory', title: '4. Medical History', component: MedicalHistorySection },
-    { id: 'consent', title: '5. Consent', component: ConsentSection },
-  ];
-
-  const renderActiveSection = () => {
-    const section = sections.find(s => s.id === activeSection);
-    if (!section) return null;
-
-    const SectionComponent = section.component;
-    
-    // PatientDetailsSection uses different props than other sections
-    if (section.id === 'patientDetails') {
-      return (
-        <SectionComponent
-          formData={formData}
-          updateFormData={updateFormData}
-          validationErrors={validationErrors}
-        />
-      );
-    }
-    
-    // All other sections use the standard props
-    return (
-      <SectionComponent
-        formData={formData}
-        onInputChange={handleInputChange}
-        onCheckboxChange={handleCheckboxChange}
-      />
-    );
-  };
+  const { sections } = useFormSections();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -164,41 +117,33 @@ const ConsentFormLayout = ({
           isRegionDetected={isRegionDetected}
         />
 
-        {/* Validation Errors Display */}
         <FormValidationErrors 
           errors={validationErrors}
           isVisible={showValidationErrors}
         />
 
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="border-b border-gray-200">
-            {sections.map((section) => (
-              <FormSection
-                key={section.id}
-                id={section.id}
-                title={section.title}
-                isActive={activeSection === section.id}
-                onToggle={setActiveSection}
-              >
-                {activeSection === section.id && renderActiveSection()}
-              </FormSection>
-            ))}
-          </div>
+        <FormSectionsContainer
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
+          formData={formData}
+          handleInputChange={handleInputChange}
+          handleCheckboxChange={handleCheckboxChange}
+          validationErrors={validationErrors}
+        />
 
-          <ConsentFormContent
-            currentRegion={currentRegion}
-            regionDetected={regionDetected}
-            isResuming={isResuming}
-          >
-            <ConsentFormNavigation
-              sections={sections}
-              activeSection={activeSection}
-              setActiveSection={setActiveSection}
-              onSave={onSave}
-              onSubmit={onSubmit}
-            />
-          </ConsentFormContent>
-        </div>
+        <ConsentFormContent
+          currentRegion={currentRegion}
+          regionDetected={regionDetected}
+          isResuming={isResuming}
+        >
+          <ConsentFormNavigation
+            sections={sections}
+            activeSection={activeSection}
+            setActiveSection={setActiveSection}
+            onSave={onSave}
+            onSubmit={onSubmit}
+          />
+        </ConsentFormContent>
       </div>
     </div>
   );
