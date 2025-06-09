@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ConsentFormHeader from './ConsentFormHeader';
 import ConsentFormProgress from './ConsentFormProgress';
@@ -74,6 +73,16 @@ const ConsentFormLayout = ({
   validationErrors,
   showValidationErrors
 }: ConsentFormLayoutProps) => {
+  // Helper function to update form data
+  const updateFormData = (updates: Partial<FormData>) => {
+    Object.keys(updates).forEach(key => {
+      const value = updates[key as keyof FormData];
+      if (typeof value === 'string') {
+        handleInputChange(key as keyof FormData, value);
+      }
+    });
+  };
+
   const sections = [
     { id: 'patientDetails', title: '1. Patient Details', component: PatientDetailsSection },
     { id: 'accountHolder', title: '2. Account Holder Details', component: AccountHolderSection },
@@ -87,6 +96,19 @@ const ConsentFormLayout = ({
     if (!section) return null;
 
     const SectionComponent = section.component;
+    
+    // Handle PatientDetailsSection with different props
+    if (section.id === 'patientDetails') {
+      return (
+        <SectionComponent
+          formData={formData}
+          updateFormData={updateFormData}
+          validationErrors={validationErrors}
+        />
+      );
+    }
+    
+    // Other sections use the original props
     return (
       <SectionComponent
         formData={formData}

@@ -20,21 +20,21 @@ const PatientDetailsSection = ({ formData, updateFormData, validationErrors }: P
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ValidatedInput
+          type="text"
           label="Patient Name"
           value={formData.patientName || ''}
           onChange={(value) => updateFormData({ patientName: value })}
           placeholder="Enter full name"
           required
-          hasError={hasError('patient name')}
         />
 
         <ValidatedInput
+          type="text"
           label="ID Number"
           value={formData.idNumber || ''}
           onChange={(value) => updateFormData({ idNumber: value })}
           placeholder="Enter ID number"
           required
-          hasError={hasError('id number')}
         />
 
         <div>
@@ -71,21 +71,22 @@ const PatientDetailsSection = ({ formData, updateFormData, validationErrors }: P
         </div>
 
         <ValidatedInput
+          type="text"
           label="Age"
-          type="number"
           value={formData.age?.toString() || ''}
           onChange={(value) => updateFormData({ age: value ? parseInt(value) : undefined })}
           placeholder="Enter age"
         />
 
         <ValidatedInput
-          label="Date of Birth"
           type="date"
+          label="Date of Birth"
           value={formData.birthDate || ''}
           onChange={(value) => updateFormData({ birthDate: value })}
         />
 
         <ValidatedInput
+          type="text"
           label="Employer/School"
           value={formData.employerSchool || ''}
           onChange={(value) => updateFormData({ employerSchool: value })}
@@ -93,6 +94,7 @@ const PatientDetailsSection = ({ formData, updateFormData, validationErrors }: P
         />
 
         <ValidatedInput
+          type="text"
           label="Occupation/Grade"
           value={formData.occupationGrade || ''}
           onChange={(value) => updateFormData({ occupationGrade: value })}
@@ -100,17 +102,17 @@ const PatientDetailsSection = ({ formData, updateFormData, validationErrors }: P
         />
 
         <ValidatedInput
+          type="phone"
           label="Cell Phone"
           value={formData.cellPhone || ''}
           onChange={(value) => updateFormData({ cellPhone: value })}
           placeholder="Enter cell phone number"
           required
-          hasError={hasError('cell phone')}
         />
 
         <ValidatedInput
-          label="Email"
           type="email"
+          label="Email"
           value={formData.email || ''}
           onChange={(value) => updateFormData({ email: value })}
           placeholder="Enter email address"
@@ -118,6 +120,7 @@ const PatientDetailsSection = ({ formData, updateFormData, validationErrors }: P
 
         <div className="md:col-span-2">
           <ValidatedInput
+            type="text"
             label="Address"
             value={formData.address || ''}
             onChange={(value) => updateFormData({ address: value })}
@@ -126,6 +129,7 @@ const PatientDetailsSection = ({ formData, updateFormData, validationErrors }: P
         </div>
 
         <ValidatedInput
+          type="text"
           label="Postal Code"
           value={formData.postalCode || ''}
           onChange={(value) => updateFormData({ postalCode: value })}
