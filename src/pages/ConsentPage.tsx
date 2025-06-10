@@ -32,8 +32,8 @@ const ConsentPage = () => {
             <p className="text-gray-600 mb-6">
               The consent form requires an internet connection to view. Please connect to the internet and try again.
             </p>
-            <Button onClick={() => navigate('/')} className="w-full">
-              Return to Home
+            <Button onClick={() => navigate('/consent-form')} className="w-full">
+              Return to Form
             </Button>
           </CardContent>
         </Card>
@@ -61,7 +61,7 @@ const ConsentPage = () => {
         <div className="mb-6">
           <Button 
             variant="outline" 
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/consent-form')}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />

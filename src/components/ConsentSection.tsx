@@ -17,6 +17,10 @@ const ConsentSection = ({ formData, updateFormData, validationErrors }: ConsentS
   const { isOnline } = useConnectivity();
   const hasConsentError = validationErrors.includes("You must agree to the consent form");
 
+  const handleConsentChange = (checked: boolean | 'indeterminate') => {
+    updateFormData({ consentAgreement: checked === true });
+  };
+
   return (
     <div className="space-y-6">
       <h3 className="text-xl font-semibold text-gray-800 border-b pb-2">
@@ -61,10 +65,8 @@ const ConsentSection = ({ formData, updateFormData, validationErrors }: ConsentS
         <div className="flex items-start space-x-3">
           <Checkbox
             id="consentAgreement"
-            checked={formData.consentAgreement || false}
-            onCheckedChange={(checked) => 
-              updateFormData({ consentAgreement: checked as boolean })
-            }
+            checked={formData.consentAgreement === true}
+            onCheckedChange={handleConsentChange}
             className="mt-1"
           />
           <label 
