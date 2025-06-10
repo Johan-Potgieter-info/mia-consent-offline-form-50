@@ -1,53 +1,90 @@
 
 import React from 'react';
+import { ExternalLink, WifiOff } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { FormData } from '../types/formTypes';
+import { useConnectivity } from '../hooks/useConnectivity';
 
 interface ConsentSectionProps {
   formData: FormData;
-  onInputChange: (field: keyof FormData, value: string) => void;
-  onCheckboxChange: (field: keyof FormData, value: string, checked: boolean) => void;
+  updateFormData: (updates: Partial<FormData>) => void;
+  validationErrors: string[];
 }
 
-const ConsentSection = ({ formData, onInputChange, onCheckboxChange }: ConsentSectionProps) => {
-  console.log('ConsentSection - Current consent agreement:', formData.consentAgreement);
+const ConsentSection = ({ formData, updateFormData, validationErrors }: ConsentSectionProps) => {
+  const { isOnline } = useConnectivity();
+  const hasConsentError = validationErrors.includes("You must agree to the consent form");
 
   return (
-    <div className="space-y-6 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Consent Agreement</h3>
+    <div className="space-y-6">
+      <h3 className="text-xl font-semibold text-gray-800 border-b pb-2">
+        Consent and Agreement
+      </h3>
       
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h4 className="font-medium text-gray-900 mb-3">Dental Treatment Consent</h4>
-        <div className="text-sm text-gray-700 space-y-2 mb-4">
-          <p>I understand that dentistry is not an exact science and that no guarantee has been made to me as to the outcome of the treatment.</p>
-          <p>I consent to the dental treatment as explained to me and understand the risks, benefits, and alternatives.</p>
-          <p>I authorize the dentist to perform the agreed-upon treatment and any additional procedures that may be necessary.</p>
-          <p>I understand that I am financially responsible for all services rendered on my behalf.</p>
-        </div>
+      {/* Consent Form Link */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h4 className="font-medium text-blue-900 mb-3">
+          Review Dental Consent Form
+        </h4>
+        <p className="text-blue-800 mb-4 text-sm">
+          Before proceeding, please review our complete consent form which outlines the risks, 
+          benefits, and your rights regarding dental treatment.
+        </p>
+        
+        {isOnline ? (
+          <Link to="/consent-page" target="_blank" rel="noopener noreferrer">
+            <Button variant="outline" className="flex items-center gap-2">
+              <ExternalLink className="w-4 h-4" />
+              View Consent Form (Opens in new tab)
+            </Button>
+          </Link>
+        ) : (
+          <div className="flex items-center gap-2 text-orange-600 bg-orange-50 p-3 rounded border border-orange-200">
+            <WifiOff className="w-4 h-4" />
+            <span className="text-sm">
+              Consent form requires internet connection. Please connect to view the full consent details.
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Consent Agreement Checkbox */}
+      <div className={`space-y-3 ${hasConsentError ? 'border border-red-300 rounded-lg p-4 bg-red-50' : ''}`}>
+        {hasConsentError && (
+          <p className="text-red-600 text-sm font-medium">
+            You must agree to the consent form to proceed
+          </p>
+        )}
         
         <div className="flex items-start space-x-3">
-          <input
-            type="checkbox"
+          <Checkbox
             id="consentAgreement"
             checked={formData.consentAgreement || false}
-            onChange={(e) => {
-              console.log('Consent agreement changed:', e.target.checked);
-              onCheckboxChange('consentAgreement', 'true', e.target.checked);
-            }}
-            className="mt-1 h-4 w-4 text-[#ef4805] border-gray-300 rounded focus:ring-[#ef4805]"
+            onCheckedChange={(checked) => 
+              updateFormData({ consentAgreement: checked as boolean })
+            }
+            className="mt-1"
           />
           <label 
             htmlFor="consentAgreement" 
-            className="text-sm text-gray-700 cursor-pointer"
+            className="text-sm text-gray-700 leading-relaxed cursor-pointer flex-1"
           >
-            <span className="font-medium text-red-600">* Required:</span> I have read, understood, and agree to the terms of this dental treatment consent form. I consent to the proposed treatment.
+            I acknowledge that I have read and understand the consent form (or have had it explained to me), 
+            and I agree to the dental treatment as outlined. I understand the risks, benefits, and alternatives 
+            to the proposed treatment, and I give my informed consent to proceed.
           </label>
         </div>
+      </div>
 
-        {!formData.consentAgreement && (
-          <div className="mt-2 text-sm text-red-600">
-            You must agree to the consent form to proceed with treatment.
-          </div>
-        )}
+      {/* Additional Notes */}
+      <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded">
+        <p>
+          <strong>Note:</strong> By checking the agreement above, you confirm that you have reviewed 
+          the complete consent form and agree to the terms of treatment. If you have any questions 
+          or concerns, please discuss them with your dental provider before proceeding.
+        </p>
       </div>
     </div>
   );
