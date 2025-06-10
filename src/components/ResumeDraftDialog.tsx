@@ -11,6 +11,7 @@ import {
 } from './ui/dialog';
 import { Button } from './ui/button';
 import DraftList from './draft/DraftList';
+import CacheRefreshButton from './CacheRefreshButton';
 import { useDraftOperations } from './draft/useDraftOperations';
 
 interface ResumeDraftDialogProps {
@@ -60,6 +61,13 @@ const ResumeDraftDialog = ({ onDraftsChanged }: ResumeDraftDialogProps) => {
     }
   };
 
+  const handleCacheRefresh = async () => {
+    await loadDrafts();
+    if (onDraftsChanged) {
+      onDraftsChanged();
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogClose}>
       <DialogTrigger asChild>
@@ -74,10 +82,15 @@ const ResumeDraftDialog = ({ onDraftsChanged }: ResumeDraftDialogProps) => {
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-gray-900">Resume a Saved Form</DialogTitle>
-          <DialogDescription className="text-sm text-gray-500">
-            Select a previously saved form to continue where you left off, or use bulk actions to manage multiple drafts
-          </DialogDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle className="text-xl font-bold text-gray-900">Resume a Saved Form</DialogTitle>
+              <DialogDescription className="text-sm text-gray-500">
+                Select a previously saved form to continue where you left off, or use bulk actions to manage multiple drafts
+              </DialogDescription>
+            </div>
+            <CacheRefreshButton onRefresh={handleCacheRefresh} size="sm" />
+          </div>
         </DialogHeader>
         <div className="overflow-y-auto max-h-[60vh]">
           <DraftList

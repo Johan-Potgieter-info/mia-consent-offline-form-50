@@ -43,14 +43,18 @@ const FormSectionRenderer = ({
           formData={formData}
           updateFormData={updateFormData}
           validationErrors={validationErrors}
+          onInputChange={handleInputChange}
+          onCheckboxChange={handleCheckboxChange}
         />
       );
     }
     
-    // All other sections use the standard props
+    // All other sections need both prop patterns to satisfy their interfaces
     return (
       <SectionComponent
         formData={formData}
+        updateFormData={updateFormData}
+        validationErrors={validationErrors}
         onInputChange={handleInputChange}
         onCheckboxChange={handleCheckboxChange}
       />

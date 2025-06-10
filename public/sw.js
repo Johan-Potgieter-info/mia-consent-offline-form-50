@@ -1,6 +1,6 @@
 
-const CACHE_NAME = 'mia-consent-form-v4';
-const RUNTIME_CACHE = 'mia-runtime-v4';
+const CACHE_NAME = 'mia-consent-form-v5';
+const RUNTIME_CACHE = 'mia-runtime-v5';
 
 // Resources to cache immediately - updated with correct logo
 const STATIC_RESOURCES = [
@@ -49,7 +49,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - cache first for app resources, network first for external resources
+// Fetch event - improved cache strategy with better error handling
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -69,32 +69,66 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(handleExternalResource(request));
 });
 
-// Cache-first strategy for app resources
+// Improved cache-first strategy for app resources
 async function handleAppResource(request) {
   try {
+    // Always try cache first for static resources
     const cachedResponse = await caches.match(request);
     
     if (cachedResponse) {
+      // For HTML files, also try to update cache in background
+      if (request.destination === 'document') {
+        updateCacheInBackground(request);
+      }
       return cachedResponse;
     }
     
+    // If not in cache, fetch from network
     const networkResponse = await fetch(request);
     
     if (networkResponse.ok) {
       const cache = await caches.open(CACHE_NAME);
-      cache.put(request, networkResponse.clone());
+      // Don't cache if response is too large or not cacheable
+      if (networkResponse.headers.get('content-length') < 50000000) {
+        cache.put(request, networkResponse.clone());
+      }
     }
     
     return networkResponse;
   } catch (error) {
     console.log('SW: App resource failed, trying cache:', request.url);
     
-    // Fallback to cache for app routes
-    if (request.destination === 'document') {
-      return caches.match('/') || new Response('App offline - please restart');
+    // Enhanced fallback logic
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
     }
     
-    throw error;
+    // Fallback to cache for app routes
+    if (request.destination === 'document') {
+      const indexResponse = await caches.match('/');
+      if (indexResponse) {
+        return indexResponse;
+      }
+    }
+    
+    return new Response('App offline - please check connection and try refreshing', {
+      status: 503,
+      statusText: 'Service Unavailable'
+    });
+  }
+}
+
+// Background cache update
+async function updateCacheInBackground(request) {
+  try {
+    const networkResponse = await fetch(request);
+    if (networkResponse.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(request, networkResponse);
+    }
+  } catch (error) {
+    console.log('SW: Background cache update failed:', error);
   }
 }
 
@@ -159,7 +193,7 @@ async function syncPendingData() {
   }
 }
 
-// Handle messages from main thread
+// Enhanced message handling
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
@@ -168,6 +202,37 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SYNC_NOW') {
     syncPendingData();
   }
+  
+  // Handle cache refresh requests
+  if (event.data && event.data.type === 'REFRESH_CACHE') {
+    refreshCaches();
+  }
 });
 
-console.log('SW: Service Worker loaded for offline app');
+// Cache refresh function
+async function refreshCaches() {
+  try {
+    // Clear all caches
+    const cacheNames = await caches.keys();
+    await Promise.all(cacheNames.map(name => caches.delete(name)));
+    
+    // Recreate main cache with static resources
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(STATIC_RESOURCES);
+    
+    console.log('SW: Caches refreshed successfully');
+    
+    // Notify clients
+    self.clients.matchAll().then(clients => {
+      clients.forEach(client => {
+        client.postMessage({
+          type: 'CACHE_REFRESHED'
+        });
+      });
+    });
+  } catch (error) {
+    console.error('SW: Cache refresh failed:', error);
+  }
+}
+
+console.log('SW: Service Worker v5 loaded with enhanced cache management');

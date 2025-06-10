@@ -7,6 +7,7 @@ import { useHybridStorage } from '../hooks/useHybridStorage';
 import { useConnectivity } from '../hooks/useConnectivity';
 import { useToast } from '@/hooks/use-toast';
 import { FormData } from '../types/formTypes';
+import CacheRefreshButton from './CacheRefreshButton';
 
 interface PendingFormsSectionProps {
   onRefresh?: () => void;
@@ -34,6 +35,11 @@ const PendingFormsSection = ({ onRefresh }: PendingFormsSectionProps) => {
       setPendingForms(pending);
     } catch (error) {
       console.error('Failed to load pending forms:', error);
+      toast({
+        title: "Cache Issue",
+        description: "Unable to load pending forms. Try refreshing the cache.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -84,6 +90,10 @@ const PendingFormsSection = ({ onRefresh }: PendingFormsSectionProps) => {
     }
   };
 
+  const handleCacheRefresh = async () => {
+    await loadPendingForms();
+  };
+
   if (pendingForms.length === 0 && !isLoading) {
     return null;
   }
@@ -91,13 +101,18 @@ const PendingFormsSection = ({ onRefresh }: PendingFormsSectionProps) => {
   return (
     <Card className="mb-6">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-amber-600">
-          <Clock className="w-5 h-5" />
-          Pending Upload ({pendingForms.length})
-        </CardTitle>
-        <CardDescription>
-          Forms captured offline waiting to be uploaded to the server
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-amber-600">
+              <Clock className="w-5 h-5" />
+              Pending Upload ({pendingForms.length})
+            </CardTitle>
+            <CardDescription>
+              Forms captured offline waiting to be uploaded to the server
+            </CardDescription>
+          </div>
+          <CacheRefreshButton onRefresh={handleCacheRefresh} />
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
