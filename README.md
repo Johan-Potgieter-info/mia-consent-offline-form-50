@@ -1,63 +1,166 @@
-# Welcome to Mia Offline Form Capture App
 
-## How can I edit this code?
+# Mia Healthcare - Dental Consent Form PWA
 
-There are several ways of editing your application.
+A Progressive Web Application (PWA) for offline dental consent form capture, designed for Mia Healthcare.
 
-**Use your preferred IDE**
+**Owner:** Mia Healthcare  
+**Developer:** Johan Potgieter
 
-If you want to work locally using your own IDE, you can clone this repo and push changes.
+## Features
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **Offline-First Design**: Forms work completely offline with automatic sync when online
+- **Progressive Web App**: Installable on desktop and mobile devices
+- **Region-Aware**: Automatically detects user location for compliance requirements
+- **Draft Management**: Save and resume incomplete forms
+- **Hybrid Storage**: Local storage with cloud backup for completed forms
+- **Mobile Optimized**: Touch-friendly interface for tablets and smartphones
 
-Follow these steps:
+## PWA Installation
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+### Desktop Installation
+1. Open the app in Chrome, Edge, or other modern browser
+2. Look for the "Install" button in the address bar
+3. Click "Install" to add the app to your desktop
+4. The app will use the Mia Healthcare logo as the desktop icon
+
+### Mobile Installation
+1. Open the app in mobile browser (Chrome/Safari)
+2. Tap the browser menu
+3. Select "Add to Home Screen" or "Install App"
+4. The app icon will appear on your home screen
+
+## Technical Specifications
+
+### Technologies Used
+- **Frontend**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **UI Framework**: Tailwind CSS with shadcn/ui components
+- **Database**: Supabase (cloud) with IndexedDB (local fallback)
+- **State Management**: TanStack Query
+- **PWA Features**: Service Worker with advanced caching
+- **Mobile Support**: Capacitor for native mobile apps
+
+### Browser Support
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+## Development Setup
+
+### Prerequisites
+- Node.js 18+ and npm
+- Git
+
+### Local Development
+```bash
+# Clone the repository
 git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Install dependencies
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The app will be available at `http://localhost:8080`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Building for Production
+```bash
+# Build the PWA
+npm run build
 
-**Use GitHub Codespaces**
+# Preview the production build
+npm run preview
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## PWA Deployment
 
-## What technologies are used for this project?
+### Web Deployment
+The built PWA can be deployed to any static hosting service:
+- Netlify
+- Vercel
+- GitHub Pages
+- AWS S3 + CloudFront
+- Any web server
 
-This project is built with:
+### Mobile App Deployment (Optional)
+For native mobile apps using Capacitor:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```bash
+# Build web app first
+npm run build
 
-## How can I deploy this project?
+# Sync with mobile platforms
+npx cap sync
 
-Simply open [Lovable](https://lovable.dev/projects/aba39364-4b3f-416b-89f3-910ca3b93712) and click on Share -> Publish.
+# Run on Android
+npx cap run android
 
-## Can I connect a custom domain to my Lovable project?
+# Run on iOS (macOS with Xcode required)
+npx cap run ios
+```
 
-Yes, you can!
+## PWA Manifest Configuration
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+The app includes a comprehensive PWA manifest with:
+- **App Name**: "Mia Healthcare Consent Form"
+- **Short Name**: "Mia"
+- **Theme Color**: #ef4805 (Mia orange)
+- **Display Mode**: Standalone (app-like experience)
+- **Icons**: Multiple sizes using Mia Healthcare logo
+- **Offline Support**: Full functionality without internet
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## Service Worker Features
+
+- **Cache-First Strategy**: Static resources cached for instant loading
+- **Background Sync**: Automatic form submission when connection restored
+- **Update Management**: Seamless app updates
+- **Offline Fallbacks**: Graceful degradation when offline
+
+## Data Management
+
+### Storage Strategy
+- **Drafts**: Stored locally (IndexedDB) for privacy
+- **Completed Forms**: Synced to cloud database (Supabase)
+- **Hybrid Approach**: Works offline, syncs when online
+
+### Data Privacy
+- Forms stored locally until completion
+- Encrypted transmission to cloud
+- Compliant with healthcare data requirements
+
+## Configuration
+
+### Environment Variables
+Create a `.env` file for production deployment:
+```
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_key
+```
+
+### Region Detection
+The app automatically detects user region for compliance but can be manually overridden.
+
+## Support and Maintenance
+
+### Developer Contact
+**Johan Potgieter**  
+Developer and Technical Lead
+
+### Issue Reporting
+For technical issues or feature requests, contact the developer directly.
+
+### Updates
+The PWA automatically updates when new versions are deployed. Users will be notified of available updates.
+
+## License
+
+Proprietary software owned by Mia Healthcare.  
+Developed by Johan Potgieter.
+
+---
+
+*This Progressive Web Application provides Mia Healthcare with a modern, offline-capable solution for dental consent form management.*
