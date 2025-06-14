@@ -127,7 +127,7 @@ const Index = () => {
         {/* Title Section */}
         <div className="text-center mb-8 mt-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Mia Healthcare
+            Mia Healthcare.
           </h1>
           <p className="text-xl text-gray-600">
             Dental Consent Form
