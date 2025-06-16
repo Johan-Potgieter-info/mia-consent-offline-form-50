@@ -5,10 +5,11 @@ import path from 'path';
 import { componentTagger } from "lovable-tagger";
 
 export default defineConfig(({ mode }) => ({
+  base: '/mia-consent-offline-form-50/',
   server: {
     host: "::",
     port: 8080,
-  },
+  }, 
   plugins: [
     react(),
     mode === 'development' && componentTagger(),
