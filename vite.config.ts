@@ -6,9 +6,22 @@ export default defineConfig({
   base: '/mia-consent-offline-form-50/',
   plugins: [
     react(),
+    import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
+import path from 'path';
+
+export default defineConfig({
+  base: '/mia-consent-offline-form-50/',
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  plugins: [
+    react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'robots.txt', 'images/icon-192.png'],
       manifest: {
         name: 'MIA Consent Form',
         short_name: 'Consent',
@@ -21,16 +34,17 @@ export default defineConfig({
           {
             src: 'images/icon-192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
           },
           {
             src: 'images/icon-512.png',
             sizes: '512x512',
-            type: 'image/png'
-          }
-        ]
-      }
-    })
-  ]
+            type: 'image/png',
+          },
+        ],
+      },
+    }),
+  ],
 });
+
 
