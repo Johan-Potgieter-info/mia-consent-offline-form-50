@@ -1,14 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
-
-export default defineConfig({
-  base: '/mia-consent-offline-form-50/',
-  plugins: [
-    react(),
-    import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 
 export default defineConfig({
@@ -22,6 +14,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      includeAssets: ['images/icon-192.png', 'images/icon-512.png'],
       manifest: {
         name: 'MIA Consent Form',
         short_name: 'Consent',
@@ -46,5 +39,3 @@ export default defineConfig({
     }),
   ],
 });
-
-
