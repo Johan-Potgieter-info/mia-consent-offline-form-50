@@ -17,7 +17,7 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster />
-      <BrowserRouter>
+      <BrowserRouter basename="/mia-consent-offline-form-50">
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/consent-form" element={<ConsentForm />} />
