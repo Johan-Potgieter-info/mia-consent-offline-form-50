@@ -48,7 +48,7 @@ const ConsentPage = () => {
         <div className="max-w-4xl mx-auto">
           <div className="bg-white p-3 inline-block rounded-lg">
             <img 
-              src="/lovable-uploads/2741077b-1d2b-4fa2-9829-1d43a1a54427.png" 
+              src="/mia-consent-offline-form-50/images/icon-192.png" 
               alt="Mia Healthcare" 
               className="h-16 w-auto"
             />
