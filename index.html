@@ -1,0 +1,70 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Mia Dental Consent Form</title>
+    <meta name="description" content="Offline dental consent form application for Mia Healthcare" />
+    <meta name="author" content="Mia Healthcare" />
+
+    <!-- Mobile optimizations -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Mia">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#ef4805">
+    <meta name="msapplication-TileColor" content="#ef4805">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/mia-consent-offline-form-50/manifest.json">
+    
+    <!-- Favicon and app icons - Updated to use new Mia logo -->
+    <link rel="icon" type="image/png" href="/mia-consent-offline-form-50/lovable-uploads/2741077b-1d2b-4fa2-9829-1d43a1a54427.png">
+    <link rel="apple-touch-icon" href="/mia-consent-offline-form-50/lovable-uploads/2741077b-1d2b-4fa2-9829-1d43a1a54427.png">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="data:application/octet-stream;base64,aW1wb3J0IHsgY3JlYXRlUm9vdCB9IGZyb20gJ3JlYWN0LWRvbS9jbGllbnQnCmltcG9ydCBBcHAgZnJvbSAnLi9BcHAudHN4JwppbXBvcnQgJy4vaW5kZXguY3NzJwoKY3JlYXRlUm9vdChkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgicm9vdCIpISkucmVuZGVyKDxBcHAgLz4pOwo=" as="script" crossorigin>
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Mia Dental Consent Form" />
+    <meta property="og:description" content="Offline dental consent form application for Mia Healthcare" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/lovable-uploads/2741077b-1d2b-4fa2-9829-1d43a1a54427.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="/lovable-uploads/2741077b-1d2b-4fa2-9829-1d43a1a54427.png" />
+    <script type="module" crossorigin src="/mia-consent-offline-form-50/assets/js/index-D9ny260Y.js"></script>
+    <link rel="modulepreload" crossorigin href="/mia-consent-offline-form-50/assets/js/vendor-CZJP2OGL.js">
+    <link rel="modulepreload" crossorigin href="/mia-consent-offline-form-50/assets/js/ui-CgoOBnOH.js">
+    <link rel="modulepreload" crossorigin href="/mia-consent-offline-form-50/assets/js/router-ON6pzj5T.js">
+    <link rel="stylesheet" crossorigin href="/mia-consent-offline-form-50/assets/index-P-1OiR0S.css">
+  </head>
+
+  <body>
+    <div id="root"></div>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+
+      // Prevent zoom on form inputs on iOS
+      document.addEventListener('touchstart', function() {}, {passive: true});
+    </script>
+  </body>
+</html>
