@@ -1,17 +1,1 @@
-const CACHE_NAME = 'mia-consent-cache-v1';
-const urlsToCache = [
-  '/mia-consent-offline-form-50/',
-  '/mia-consent-offline-form-50/index.html',
-];
-
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
-  );
-});
-
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request).then(response => response || fetch(event.request))
-  );
-});
+if(!self.define){let e,i={};const n=(n,s)=>(n=new URL(n+".js",s).href,i[n]||new Promise((i=>{if("document"in self){const e=document.createElement("script");e.src=n,e.onload=i,document.head.appendChild(e)}else e=n,importScripts(n),i()})).then((()=>{let e=i[n];if(!e)throw new Error(`Module ${n} didn’t register its module`);return e})));self.define=(s,r)=>{const o=e||("document"in self?document.currentScript.src:"")||location.href;if(i[o])return;let t={};const d=e=>n(e,o),c={module:{uri:o},exports:t,require:d};i[o]=Promise.all(s.map((e=>c[e]||d(e)))).then((e=>(r(...e),t)))}}define(["./workbox-5ffe50d4"],(function(e){"use strict";self.skipWaiting(),e.clientsClaim(),e.precacheAndRoute([{url:"assets/index-CDoqJip7.css",revision:null},{url:"assets/index-DWEn3cmV.js",revision:null},{url:"index.html",revision:"84d1327bd590924ab213b2f6eaaffbd6"},{url:"registerSW.js",revision:"0b6d30333d245ef024d17392b993ca0b"},{url:"images/icon-192.png",revision:"216e602c3d52be9c1e3ee320d1cd5c66"},{url:"images/icon-512.png",revision:"216e602c3d52be9c1e3ee320d1cd5c66"},{url:"manifest.webmanifest",revision:"e23d2b56a9a25daf98fcaa93e2793ea3"}],{}),e.cleanupOutdatedCaches(),e.registerRoute(new e.NavigationRoute(e.createHandlerBoundToURL("index.html")))}));
