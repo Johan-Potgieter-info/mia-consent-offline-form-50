@@ -1,1 +1,0 @@
-if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/mia-consent-offline-form-50/sw.js', { scope: '/mia-consent-offline-form-50/' })})}

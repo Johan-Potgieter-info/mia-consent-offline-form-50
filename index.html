@@ -1,67 +1,15 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>Mia Dental Consent Form</title>
-    <meta name="description" content="Offline dental consent form application for Mia Healthcare" />
-    <meta name="author" content="Mia Healthcare" />
-
-    <!-- Mobile optimizations -->
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Mia">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="msapplication-tap-highlight" content="no">
-    
-    <!-- Theme Color -->
-    <meta name="theme-color" content="#ef4805">
-    <meta name="msapplication-TileColor" content="#ef4805">
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/mia-consent-offline-form-50/manifest.json">
-    
-    <!-- Favicon and app icons - Updated to use new Mia logo -->
-    <link rel="icon" type="image/png" href="/lovable-uploads/2741077b-1d2b-4fa2-9829-1d43a1a54427.png">
-    <link rel="apple-touch-icon" href="/lovable-uploads/2741077b-1d2b-4fa2-9829-1d43a1a54427.png">
-    
-    <!-- Preload critical resources -->
-    <link rel="preload" href="data:application/octet-stream;base64,aW1wb3J0IFJlYWN0IGZyb20gJ3JlYWN0JzsKaW1wb3J0IFJlYWN0RE9NIGZyb20gJ3JlYWN0LWRvbS9jbGllbnQnOwppbXBvcnQgQXBwIGZyb20gJy4vQXBwJzsKaW1wb3J0ICcuL2luZGV4LmNzcyc7Cgpjb25zdCByb290ID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3Jvb3QnKTsKCmlmIChyb290KSB7CiAgUmVhY3RET00uY3JlYXRlUm9vdChyb290KS5yZW5kZXIoCiAgICA8UmVhY3QuU3RyaWN0TW9kZT4KICAgICAgPEFwcCAvPgogICAgPC9SZWFjdC5TdHJpY3RNb2RlPgogICk7Cn0KLy8gQ29ycmVjdCBTZXJ2aWNlIFdvcmtlciByZWdpc3RyYXRpb24gZm9yIEdpdEh1YiBQYWdlcwppZiAoJ3NlcnZpY2VXb3JrZXInIGluIG5hdmlnYXRvcikgewogIHdpbmRvdy5hZGRFdmVudExpc3RlbmVyKCdsb2FkJywgKCkgPT4gewogICAgbmF2aWdhdG9yLnNlcnZpY2VXb3JrZXIucmVnaXN0ZXIoJy9taWEtY29uc2VudC1vZmZsaW5lLWZvcm0tNTAvc3cuanMnKQogICAgICAudGhlbihyZWcgPT4gY29uc29sZS5sb2coJ+KchSBTVyByZWdpc3RlcmVkOicsIHJlZykpCiAgICAgIC5jYXRjaChlcnIgPT4gY29uc29sZS5lcnJvcign4p2MIFNXIHJlZ2lzdHJhdGlvbiBmYWlsZWQ6JywgZXJyKSk7CiAgfSk7Ci8vIENsZWFudXA6IFVucmVnaXN0ZXIgYWxsIG9sZCBzZXJ2aWNlIHdvcmtlcnMgKGUuZy4sIGxlZnRvdmVyIC9zdy5qcykKaWYgKCdzZXJ2aWNlV29ya2VyJyBpbiBuYXZpZ2F0b3IpIHsKICBuYXZpZ2F0b3Iuc2VydmljZVdvcmtlci5nZXRSZWdpc3RyYXRpb25zKCkudGhlbihyZWdpc3RyYXRpb25zID0+IHsKICAgIGZvciAoY29uc3QgcmVnaXN0cmF0aW9uIG9mIHJlZ2lzdHJhdGlvbnMpIHsKICAgICAgcmVnaXN0cmF0aW9uLnVucmVnaXN0ZXIoKS50aGVuKCgpID0+IGNvbnNvbGUubG9nKCfwn6e5IE9sZCBTVyB1bnJlZ2lzdGVyZWQnKSk7CiAgICB9CiAgfSk7CgogIC8vIENvcnJlY3QgU2VydmljZSBXb3JrZXIgcmVnaXN0cmF0aW9uIGZvciBHaXRIdWIgUGFnZXMgc3VicGF0aAogIHdpbmRvdy5hZGRFdmVudExpc3RlbmVyKCdsb2FkJywgKCkgPT4gewogICAgbmF2aWdhdG9yLnNlcnZpY2VXb3JrZXIucmVnaXN0ZXIoJy9taWEtY29uc2VudC1vZmZsaW5lLWZvcm0tNTAvc3cuanMnKQogICAgICAudGhlbihyZWcgPT4gY29uc29sZS5sb2coJ+KchSBTVyByZWdpc3RlcmVkOicsIHJlZykpCiAgICAgIC5jYXRjaChlcnIgPT4gY29uc29sZS5lcnJvcign4p2MIFNXIHJlZ2lzdHJhdGlvbiBmYWlsZWQ6JywgZXJyKSk7CiAgfSk7Ci8vIHNyYy9tYWluLnRzeAppZiAoJ3NlcnZpY2VXb3JrZXInIGluIG5hdmlnYXRvcikgewogIG5hdmlnYXRvci5zZXJ2aWNlV29ya2VyLmdldFJlZ2lzdHJhdGlvbnMoKS50aGVuKHJlZ2lzdHJhdGlvbnMgPT4gewogICAgZm9yIChjb25zdCByZWdpc3RyYXRpb24gb2YgcmVnaXN0cmF0aW9ucykgewogICAgICByZWdpc3RyYXRpb24udW5yZWdpc3RlcigpLnRoZW4oKCkgPT4gY29uc29sZS5sb2coJyAgT2xkIFNXIHVucmVnaXN0ZXJlZCcpKTsKICAgIH0KICB9KTsKCiAgd2luZG93LmFkZEV2ZW50TGlzdGVuZXIoJ2xvYWQnLCAoKSA9PiB7CiAgICBuYXZpZ2F0b3Iuc2VydmljZVdvcmtlci5yZWdpc3RlcignL21pYS1jb25zZW50LW9mZmxpbmUtZm9ybS01MC9zdy5qcz92PTEnKQogICAgICAudGhlbihyZWcgPT4gY29uc29sZS5sb2coJ+KchSBTVyByZWdpc3RlcmVkOicsIHJlZykpCiAgICAgIC5jYXRjaChlcnIgPT4gY29uc29sZS5lcnJvcign4p2MIFNXIHJlZ2lzdHJhdGlvbiBmYWlsZWQ6JywgZXJyKSk7CiAgfSk7Cn19Cn0KCgoK" as="script" crossorigin>
-    
-    <!-- Open Graph -->
-    <meta property="og:title" content="Mia Dental Consent Form" />
-    <meta property="og:description" content="Offline dental consent form application for Mia Healthcare" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="/lovable-uploads/2741077b-1d2b-4fa2-9829-1d43a1a54427.png" />
-
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="/lovable-uploads/2741077b-1d2b-4fa2-9829-1d43a1a54427.png" />
-    <script type="module" crossorigin src="/mia-consent-offline-form-50/assets/index-DggWvdcw.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MIA Consent Form</title>
+    <link rel="manifest" href="/mia-consent-offline-form-50/manifest.json" />
+    <link rel="icon" type="image/png" href="/mia-consent-offline-form-50/favicon.ico" />
+    <script type="module" crossorigin src="/mia-consent-offline-form-50/assets/index-Bd825hsV.js"></script>
     <link rel="stylesheet" crossorigin href="/mia-consent-offline-form-50/assets/index-CDoqJip7.css">
-  <link rel="manifest" href="/mia-consent-offline-form-50/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/mia-consent-offline-form-50/registerSW.js"></script></head>
-
+  </head>
   <body>
     <div id="root"></div>
-    
-    <!-- Service Worker Registration -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-              console.log('SW registered: ', registration);
-            })
-            .catch((registrationError) => {
-              console.log('SW registration failed: ', registrationError);
-            });
-        });
-      }
-
-      // Prevent zoom on form inputs on iOS
-      document.addEventListener('touchstart', function() {}, {passive: true});
-    </script>
   </body>
 </html>
