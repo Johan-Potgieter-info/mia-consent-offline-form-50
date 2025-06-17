@@ -33,7 +33,20 @@ if ('serviceWorker' in navigator) {
       .then(reg => console.log('✅ SW registered:', reg))
       .catch(err => console.error('❌ SW registration failed:', err));
   });
-}
+// src/main.tsx
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(registrations => {
+    for (const registration of registrations) {
+      registration.unregister().then(() => console.log('  Old SW unregistered'));
+    }
+  });
+
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/mia-consent-offline-form-50/sw.js?v=1')
+      .then(reg => console.log('✅ SW registered:', reg))
+      .catch(err => console.error('❌ SW registration failed:', err));
+  });
+}}
 }
 
 
