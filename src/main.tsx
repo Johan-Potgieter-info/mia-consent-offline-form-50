@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
@@ -14,20 +13,18 @@ if (root) {
   );
 }
 
-// Clean and correct Service Worker setup for GitHub Pages deployment
+// Service Worker registration
 if ('serviceWorker' in navigator) {
-  // Unregister all previously cached Service Workers (e.g., bad /sw.js ones)
-  navigator.serviceWorker.getRegistrations().then((registrations) => {
+  // Unregister old service workers
+  navigator.serviceWorker.getRegistrations().then(registrations => {
     for (const registration of registrations) {
-      registration.unregister().then(() => console.log('🧹 Old SW unregistered'));
+      registration.unregister().then(() => console.log('  Old SW unregistered'));
     }
   });
-
-  // Register the correct SW with cache-busting version query param
+  // Register custom service worker
   window.addEventListener('load', () => {
-    navigator.serviceWorker
-      .register('/mia-consent-offline-form-50/sw.js?v=2')
-      .then((reg) => console.log('✅ SW registered:', reg))
-      .catch((err) => console.error('❌ SW registration failed:', err));
+    navigator.serviceWorker.register('/mia-consent-offline-form-50/sw.js?v=1')
+      .then(reg => console.log('✅ SW registered:', reg))
+      .catch(err => console.error('❌ SW registration failed:', err));
   });
 }
