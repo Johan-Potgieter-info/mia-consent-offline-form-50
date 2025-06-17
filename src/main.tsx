@@ -12,42 +12,25 @@ if (root) {
     </React.StrictMode>
   );
 }
-// Correct Service Worker registration for GitHub Pages
+
+// ✅ Clean and correct Service Worker setup for GitHub Pages deployment
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/mia-consent-offline-form-50/sw.js')
-      .then(reg => console.log('✅ SW registered:', reg))
-      .catch(err => console.error('❌ SW registration failed:', err));
-  });
-// Cleanup: Unregister all old service workers (e.g., leftover /sw.js)
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(registrations => {
+  // 🧹 Unregister all previously cached Service Workers (e.g., bad /sw.js ones)
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
     for (const registration of registrations) {
       registration.unregister().then(() => console.log('🧹 Old SW unregistered'));
     }
   });
 
-  // Correct Service Worker registration for GitHub Pages subpath
+  // ✅ Register the correct SW with cache-busting version query param
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/mia-consent-offline-form-50/sw.js')
-      .then(reg => console.log('✅ SW registered:', reg))
-      .catch(err => console.error('❌ SW registration failed:', err));
+    navigator.serviceWorker
+      .register('/mia-consent-offline-form-50/sw.js?v=1')
+      .then((reg) => console.log('✅ SW registered:', reg))
+      .catch((err) => console.error('❌ SW registration failed:', err));
   });
-// src/main.tsx
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(registrations => {
-    for (const registration of registrations) {
-      registration.unregister().then(() => console.log('  Old SW unregistered'));
-    }
-  });
-
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/mia-consent-offline-form-50/sw.js?v=1')
-      .then(reg => console.log('✅ SW registered:', reg))
-      .catch(err => console.error('❌ SW registration failed:', err));
-  });
-}}
 }
+
 
 
 
