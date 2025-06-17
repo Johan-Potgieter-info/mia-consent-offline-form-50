@@ -2,9 +2,10 @@
   "name": "MIA Consent Offline Form",
   "short_name": "MIA Consent",
   "start_url": "/mia-consent-offline-form-50/",
+  "scope": "/mia-consent-offline-form-50/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#007bff",
+  "theme_color": "#10b981",
   "icons": [
     {
       "src": "/mia-consent-offline-form-50/images/icon-192.png",
