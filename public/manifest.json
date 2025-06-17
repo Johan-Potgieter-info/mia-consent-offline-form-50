@@ -1,7 +1,8 @@
+
 {
   "name": "MIA Consent Form",
   "short_name": "Consent",
-  "description": "Offline consent form for MIA Gesondheidsorgdienste",
+  "description": "Offline-friendly consent form for MIA healthcare users to submit and manage consent forms even without internet connectivity.",
   "id": "/mia-consent-offline-form-50/",
   "start_url": "/mia-consent-offline-form-50/",
   "scope": "/mia-consent-offline-form-50/",
@@ -9,6 +10,9 @@
   "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#10b981",
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
   "icons": [
     {
       "src": "/mia-consent-offline-form-50/images/icon-192.png",
@@ -26,11 +30,8 @@
       "src": "/mia-consent-offline-form-50/images/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "label": "Form Screenshot",
+      "label": "MIA Consent Form Screenshot",
       "platform": "wide"
     }
-  ],
-  "launch_handler": {
-    "client_mode": "auto"
-  }
+  ]
 }
