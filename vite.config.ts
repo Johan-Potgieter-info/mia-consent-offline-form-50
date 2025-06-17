@@ -14,18 +14,37 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['images/icon-192.png', 'images/icon-512.png'],
+      includeAssets: [
+        'images/icon-192.png',
+        'images/icon-512.png',
+        'favicon.ico',
+        'robots.txt'
+      ],
+      manifest: {
+        name: 'MIA Consent Form',
+        short_name: 'Consent',
+        start_url: '/mia-consent-offline-form-50/',
+        scope: '/mia-consent-offline-form-50/',
+        display: 'standalone',
+        background_color: '#ffffff',
+        theme_color: '#10b981',
+        icons: [
+          {
+            src: 'images/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: 'images/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png'
+          }
+        ]
+      },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        // Use your existing sw.js
-        swSrc: 'public/mia-consent-offline-form-50/sw.js',
-        swDest: 'dist/mia-consent-offline-form-50/sw.js',
       },
-      // Disable default registration since you handle it in main.tsx
-      injectRegister: null,
-      // Use your existing manifest.json
-      manifest: false,
-    }),
-  ],
+      injectRegister: null // Because you're handling SW registration in main.tsx
+    })
+  ]
 });
-
