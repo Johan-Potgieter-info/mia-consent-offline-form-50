@@ -1,11 +1,17 @@
 {
-  "name": "MIA Consent Offline Form",
-  "short_name": "MIA Consent",
+  "name": "MIA Consent Form",
+  "short_name": "Consent",
+  "id": "/mia-consent-offline-form-50/",
   "start_url": "/mia-consent-offline-form-50/",
   "scope": "/mia-consent-offline-form-50/",
+  "description": "Offline MIA Consent Form for use in case of no Internet connection.",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#10b981",
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
   "icons": [
     {
       "src": "/mia-consent-offline-form-50/images/icon-192.png",
@@ -17,5 +23,13 @@
       "sizes": "512x512",
       "type": "image/png"
     }
+  ],
+  "screenshots": [
+    {
+      "src": "/mia-consent-offline-form-50/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }
+
