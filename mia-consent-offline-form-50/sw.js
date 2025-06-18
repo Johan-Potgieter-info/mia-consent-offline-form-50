@@ -54,3 +54,4 @@ self.addEventListener('fetch', event => {
 
 // Add Workbox compatibility line but don't use it
 self.__WB_MANIFEST;
+// dummy update
